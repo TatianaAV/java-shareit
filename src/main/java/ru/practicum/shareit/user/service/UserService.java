@@ -17,6 +17,4 @@ public interface UserService {
     User updateUser(UpdateUserDto user, int id);
 
     void deleteUserById(int userId);
-
-    void userValidateExist(int userId);
 }

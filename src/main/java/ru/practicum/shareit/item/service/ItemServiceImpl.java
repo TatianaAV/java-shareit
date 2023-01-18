@@ -9,8 +9,7 @@ import ru.practicum.shareit.item.dto.UpdateItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
-
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.validation.ValidationService;
 
 import java.util.List;
 
@@ -19,9 +18,8 @@ import java.util.List;
 @Service
 public class ItemServiceImpl implements ItemService {
 
-
+    private final ValidationService validationService;
     private final ItemRepository repository;
-    private final UserService userService;
     private final ItemMapper mapper;
 
     @Override
@@ -37,9 +35,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item add(int userId, CreateItemDto item) {
-        userService.userValidateExist(userId);
+        validationService.userValidateExist(userId);
         Item newItem = mapper.createItemDtoToItem(userId, item);
-        validateCreate(userId, newItem);
+        validationService.validateCreate(userId, newItem);
         return repository.create(newItem)
                 .orElseThrow(() -> new NotFoundException("Item with id: " + userId + " does not exist"));
     }
@@ -61,23 +59,11 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Item update(long itemId, int userId, UpdateItemDto itemDto) {
         Item item = mapper.toItem(itemId, itemDto);
-        userService.userValidateExist(userId);
+        validationService.userValidateExist(userId);
         log.info("item update user id {} exist", userId);
-        validateUpdate(userId, item);
+        validationService.validateUpdate(userId, item);
         log.info("item update user id {} exist item id {}", userId, item.getId());
         return repository.update(itemId, item)
                 .orElseThrow(() -> new NotFoundException("Item with id: " + itemId + " does not exist"));
-    }
-
-    private void validateCreate(int userId, Item item) {
-        if (!repository.checkUserOwnsItem(userId, item.getId())) {
-            throw new NotFoundException("Item not found");
-        }
-    }
-
-    private void validateUpdate(int userId, Item item) {
-        if (repository.checkUserOwnsItem(userId, item.getId())) {
-            throw new NotFoundException("Item not found");
-        }
     }
 }

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exeption.AlreadyExistException;
 import ru.practicum.shareit.exeption.NotFoundException;
+import ru.practicum.shareit.validation.ValidationService;
 import ru.practicum.shareit.user.dto.CreatUserDto;
 import ru.practicum.shareit.user.dto.UpdateUserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
@@ -20,8 +21,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
+    private final ValidationService validationService;
     private final UserRepository userStorage;
     private final UserMapper mapper;
+
 
     @Override
     public List<User> getUsers() {
@@ -37,7 +40,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(CreatUserDto createUser) {
         User user = mapper.toUser(createUser);
-        userValidateExistEmail(user);
+        validationService.userValidateExistEmail(user);
         return userStorage.createUser(user)
                 .orElseThrow(() -> new InternalException("User with id: " + user.getId() + " does not exist"));
     }
@@ -45,8 +48,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUser(UpdateUserDto user, int id) {
         User updateUser = mapper.toUser(user);
-        userValidateExist(id);
-        userValidateExistEmail(updateUser);
+        validationService.userValidateExist(id);
+        validationService.userValidateExistEmail(updateUser);
         if (updateUser.getEmail() == null && updateUser.getName() == null) {
             throw new AlreadyExistException("Нечего изменять");
         }
@@ -57,20 +60,5 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUserById(int userId) {
         userStorage.deleteById(userId);
-    }
-
-
-    public void userValidateExist(int id) {
-
-        if (userStorage.getMapUsers().contains(id)) {
-            return;
-        }
-        throw new NotFoundException("Пользователь не найден");
-    }
-
-    private void userValidateExistEmail(User user) {
-        if (userStorage.getUsersEmail().contains(user.getEmail())) {
-            throw new AlreadyExistException("Email уже используется");
-        }
     }
 }
