@@ -70,13 +70,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void validateCreate(int userId, Item item) {
-        if (!repository.checkUserOwnsItem(userId, item.getId())) {//false if notNull
+        if (!repository.checkUserOwnsItem(userId, item.getId())) {
             throw new NotFoundException("Item not found");
         }
     }
 
     private void validateUpdate(int userId, Item item) {
-        if (repository.checkUserOwnsItem(userId, item.getId())) {//false if notNull
+        if (repository.checkUserOwnsItem(userId, item.getId())) {
             throw new NotFoundException("Item not found");
         }
     }

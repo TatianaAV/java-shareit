@@ -18,11 +18,11 @@ import java.util.List;
 @RequestMapping("/items")
 
 public class ItemController {
-    private final String REQUEST_HEADER = "X-Sharer-User-Id";
+    private final String requestHeader = "X-Sharer-User-Id";
     private final ItemService itemService;
 
     @GetMapping
-    public List<Item> getAll(@RequestHeader(name = REQUEST_HEADER) int userId) {
+    public List<Item> getAll(@RequestHeader(name = requestHeader) int userId) {
         return itemService.getAll(userId);
     }
 
@@ -32,24 +32,23 @@ public class ItemController {
     }
 
     @GetMapping("/{id}")
-    public Item getById( @RequestHeader(name = REQUEST_HEADER) int userId, @PathVariable long id) {
+    public Item getById(@RequestHeader(name = requestHeader) int userId, @PathVariable long id) {
         return itemService.getById(id, userId);
     }
 
     @PostMapping
-    public Item create(@RequestHeader(name = REQUEST_HEADER) int userId, @Valid @RequestBody CreateItemDto item) {
+    public Item create(@RequestHeader(name = requestHeader) int userId, @Valid @RequestBody CreateItemDto item) {
         return itemService.add(userId, item);
     }
 
     @PatchMapping("/{id}")
-    public Item update(@RequestHeader(name = REQUEST_HEADER) int userId, @PathVariable("id") long itemId,
+    public Item update(@RequestHeader(name = requestHeader) int userId, @PathVariable("id") long itemId,
                        @Valid @RequestBody UpdateItemDto item) {
-        System.out.println( userId + " " + itemId);
         return itemService.update(itemId, userId, item);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@RequestHeader(name = REQUEST_HEADER) int userId, @PathVariable long id) {
+    public void delete(@RequestHeader(name = requestHeader) int userId, @PathVariable long id) {
         itemService.delete(id, userId);
     }
 }
