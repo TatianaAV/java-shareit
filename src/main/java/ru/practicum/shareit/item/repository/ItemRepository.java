@@ -21,7 +21,5 @@ public interface ItemRepository {
     Optional<Item> update(long itemId, Item item);
 
     List<Item> search(String text);
-
-    boolean checkUserOwnsItem(int userId, long itemId);
 }
 

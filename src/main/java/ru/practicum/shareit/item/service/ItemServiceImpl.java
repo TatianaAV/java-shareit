@@ -9,6 +9,7 @@ import ru.practicum.shareit.item.dto.UpdateItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.service.UserService;
 import ru.practicum.shareit.validation.ValidationService;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class ItemServiceImpl implements ItemService {
     private final ValidationService validationService;
     private final ItemRepository repository;
     private final ItemMapper mapper;
+    private final UserService userService;
 
     @Override
     public Item getById(long id, int userId) {
@@ -36,7 +38,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Item add(int userId, CreateItemDto item) {
         validationService.userValidateExist(userId);
-        Item newItem = mapper.createItemDtoToItem(userId, item);
+        Item newItem = mapper.createItemDtoToItem(userService.getUserById(userId),item);
         validationService.validateCreate(userId, newItem);
         return repository.create(newItem)
                 .orElseThrow(() -> new NotFoundException("Item with id: " + userId + " does not exist"));

@@ -6,45 +6,46 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.shareit.exeption.model.ErrorResponse;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+
+import static org.springframework.http.HttpStatus.*;
 
 @Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handlerValidationException(HttpServletRequest request, final ValidationException e) {
+    @ResponseStatus(BAD_REQUEST)
+    public Map<HttpStatus, String> handlerValidationException(HttpServletRequest request, final ValidationException e) {
         log.error("Requested URL=" + request.getRequestURL());
         log.error("BAD_REQUEST {}", e.getMessage());
-        return Map.of("Validation error", e.getMessage());
+        return Map.of(BAD_REQUEST, e.getMessage());
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handlerNotFoundException(HttpServletRequest request, final NotFoundException e) {
+    @ResponseStatus(NOT_FOUND)
+    public Map<HttpStatus, String> handlerNotFoundException(HttpServletRequest request, final NotFoundException e) {
         log.error("Requested URL=" + request.getRequestURL());
         log.error("404 NOT_FOUND {}", e.getMessage());
-        return Map.of("Not found", e.getMessage());
+        return Map.of(NOT_FOUND, e.getMessage());
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleFilmNotFoundException(HttpServletRequest request, final AlreadyExistException e) {
+    @ResponseStatus(CONFLICT)
+    public Map<HttpStatus, String> handleFilmNotFoundException(HttpServletRequest request, final AlreadyExistException e) {
         log.error("Requested URL=" + request.getRequestURL());
         log.error("409 CONFLICT {}", e.getMessage());
-        return new ErrorResponse(e.getMessage());
+        return Map.of(CONFLICT, e.getMessage());
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, String> handlerInternalException(HttpServletRequest request, final InternalException e) {
+    @ResponseStatus(INTERNAL_SERVER_ERROR)
+    public Map<HttpStatus, String> handlerInternalException(HttpServletRequest request, final InternalException e) {
         log.error("Requested URL=" + request.getRequestURL());
         log.error("500 CONFLICT {}", e.getMessage());
-        return Map.of("Internal error", e.getMessage());
+        return Map.of(INTERNAL_SERVER_ERROR, e.getMessage());
     }
 }
 

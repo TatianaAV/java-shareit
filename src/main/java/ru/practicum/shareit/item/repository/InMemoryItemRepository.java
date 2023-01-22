@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class InMemoryItemRepository implements ItemRepository {
 
-    protected final Map<Long, Item> items = new HashMap<>();
+    protected static final Map<Long, Item> items = new HashMap<>();
     long lastId = 0;
 
     private long getId() {
@@ -31,7 +31,7 @@ public class InMemoryItemRepository implements ItemRepository {
         log.info(" FIND ALL find all items by owner id: {} count: {}", ownerId, items.keySet().size());
         List<Item> allOwnerItems = items.values()
                 .stream()
-                .filter(item -> item.getOwner() == ownerId)
+                .filter(item -> item.getOwner().getId() == ownerId)
                 .collect(Collectors.toList());
         log.info(" FIND ALL  items: {}", allOwnerItems);
         return allOwnerItems;
@@ -48,7 +48,6 @@ public class InMemoryItemRepository implements ItemRepository {
 
     @Override
     public Optional<Item> create(Item item) {
-
         long id = getId();
         item.setId(id);
         items.put(id, item);
@@ -65,7 +64,7 @@ public class InMemoryItemRepository implements ItemRepository {
 
     @Override
     public Optional<Item> update(long itemId, Item item) {
-        Item updateItem = items.get(item.getId());
+        Item updateItem = items.get(itemId);
         if (item.getName() != null && !item.getName().isEmpty()) {
             updateItem.setName(item.getName());
         }
@@ -96,11 +95,10 @@ public class InMemoryItemRepository implements ItemRepository {
         return result;
     }
 
-    @Override
-    public boolean checkUserOwnsItem(int ownerId, long itemId) {
+    public static boolean checkUserOwnsItem(int ownerId, long itemId) {
         List<Item> items1 = items.values()
                 .stream()
-                .filter(item -> item.getOwner() == ownerId).filter(item -> item.getId() == itemId)
+                .filter(item -> item.getOwner().getId() == ownerId).filter(item -> item.getId() == itemId)
                 .collect(Collectors.toList());
         return items1.isEmpty();
     }

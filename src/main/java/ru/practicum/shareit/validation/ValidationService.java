@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exeption.AlreadyExistException;
 import ru.practicum.shareit.exeption.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.item.repository.InMemoryItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -15,14 +15,11 @@ import ru.practicum.shareit.user.repository.UserRepository;
 @Service
 public class ValidationService {
     private final UserRepository userRepository;
-    private final ItemRepository itemRepository;
 
     public void userValidateExist(int id) {
-
-        if (userRepository.getMapUsers().contains(id)) {
-            return;
+        if (!userRepository.getMapUsers().contains(id)) {
+            throw new NotFoundException("Пользователь не найден");
         }
-        throw new NotFoundException("Пользователь не найден");
     }
 
     public void userValidateExistEmail(User user) {
@@ -32,13 +29,13 @@ public class ValidationService {
     }
 
     public void validateCreate(int userId, Item item) {
-        if (!itemRepository.checkUserOwnsItem(userId, item.getId())) {
+        if (!InMemoryItemRepository.checkUserOwnsItem(userId, item.getId())) {
             throw new NotFoundException("Item not found");
         }
     }
 
     public void validateUpdate(int userId, Item item) {
-        if (itemRepository.checkUserOwnsItem(userId, item.getId())) {
+        if (InMemoryItemRepository.checkUserOwnsItem(userId, item.getId())) {
             throw new NotFoundException("Item not found");
         }
     }
