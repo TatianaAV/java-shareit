@@ -6,32 +6,22 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.practicum.shareit.user.model.User;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
-/**
- * TODO Sprint add-controllers.
- */
-
-@Valid
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemDto {
-
-    private long id;
-
-    @NotBlank
+public class CreateItemDto {
+    @NotBlank(message = "Name is required")
     private String name;
 
-    @NotBlank
+    @NotBlank(message = "Description is required")
     private String description;
 
-    @NotBlank
+    @NotNull(message = "Available is required")
     private Boolean available;
 
     private User owner;
-
-    private long request;
 }
