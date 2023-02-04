@@ -1,64 +1,84 @@
 package ru.practicum.shareit.user.service;
 
-import com.sun.jdi.InternalException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exeption.AlreadyExistException;
 import ru.practicum.shareit.exeption.NotFoundException;
-import ru.practicum.shareit.validation.ValidationService;
+import ru.practicum.shareit.user.UserShort;
 import ru.practicum.shareit.user.dto.CreatUserDto;
 import ru.practicum.shareit.user.dto.UpdateUserDto;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
 
+import static org.mapstruct.ap.internal.util.Strings.isNotEmpty;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final ValidationService validationService;
-    private final UserRepository userStorage;
+    private final UserRepository repository;
     private final UserMapper mapper;
 
-
+    @Transactional(readOnly = true)
     @Override
-    public List<User> getUsers() {
-        return userStorage.getUsers();
+    public List<UserDto> getUsers() {//изменено на автоматический репозиторий
+        List<User> users = repository.findAll();
+        return mapper.mapToUserDto(users);
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public User getUserById(Integer userId) {
-        return userStorage.getUserById(userId)
+    public UserDto getUserById(Integer userId) {
+        User user = repository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id: " + userId + " does not exist"));
+    return mapper.toUserDto(user);
     }
 
+    @Transactional
     @Override
-    public User createUser(CreatUserDto createUser) {
+    public UserDto createUser(CreatUserDto createUser) {
         User user = mapper.toUser(createUser);
-        validationService.userValidateExistEmail(user);
-        return userStorage.createUser(user)
-                .orElseThrow(() -> new InternalException("User with id: " + user.getId() + " does not exist"));
+        return mapper.toUserDto(repository.save(user));
     }
 
+    @Transactional
     @Override
-    public User updateUser(UpdateUserDto user, int id) {
-        User updateUser = mapper.toUser(user);
-        validationService.userValidateExist(id);
-        validationService.userValidateExistEmail(updateUser);
-        if (updateUser.getEmail() == null && updateUser.getName() == null) {
-            throw new AlreadyExistException("Нечего изменять");
+    public UserDto updateUser(UpdateUserDto user, int id) {
+        User foundUser = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User with id: " + id + " does not exist"));
+//User updateUser = mapper.toUser(foundUser, user);
+// генерирует else {
+//            updateUser.setEmail( null );
+//        } не получается исправить
+        if ( user == null ) {
+            return mapper.toUserDto(foundUser);
         }
-        return userStorage.updateUser(updateUser, id)
-                .orElseThrow(() -> new NotFoundException("User with id: " + updateUser.getId() + " does not exist"));
+        if ( isNotEmpty( user.getName() ) ) {
+            foundUser.setName( user.getName() );
+        }
+        if ( isNotEmpty( user.getEmail() ) ) {
+            foundUser.setEmail( user.getEmail() );
+        }
+
+        return mapper.toUserDto(repository.save(foundUser));
     }
 
+    @Transactional
     @Override
     public void deleteUserById(int userId) {
-        userStorage.deleteById(userId);
+        repository.deleteById(userId);
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<UserShort> findAllByEmailContainingIgnoreCase(String emailSearch){
+     return repository.findAllByEmailContainingIgnoreCase(emailSearch);}
 }

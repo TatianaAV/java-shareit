@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletRequest;
+import java.sql.SQLException;
 import java.util.Map;
 
 import static org.springframework.http.HttpStatus.*;
@@ -45,6 +46,15 @@ public class ErrorHandler {
     public Map<HttpStatus, String> handlerInternalException(HttpServletRequest request, final InternalException e) {
         log.error("Requested URL=" + request.getRequestURL());
         log.error("500 CONFLICT {}", e.getMessage());
+        return Map.of(INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(INTERNAL_SERVER_ERROR)
+    public Map<HttpStatus, String> handlerServerErrorMessage(HttpServletRequest request, final SQLException e) {
+        log.error("Requested URL=" + request.getRequestURL());
+        log.error("500 CONFLICT {}", e.getMessage());
+        log.error("SERVER_ERROR {}", e.getMessage());
         return Map.of(INTERNAL_SERVER_ERROR, e.getMessage());
     }
 }

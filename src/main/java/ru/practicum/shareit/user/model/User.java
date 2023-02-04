@@ -2,6 +2,9 @@ package ru.practicum.shareit.user.model;
 
 import lombok.*;
 
+import javax.persistence.*;
+import java.time.Instant;
+
 /**
  * TODO Sprint add-controllers.
  */
@@ -10,8 +13,21 @@ import lombok.*;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
+@Entity
+@Table(name = "users", schema = "public")
 public class User {
-    private int id;
-    private String email;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false, updatable = false, unique = true)
+    private Integer id;
+
+    @Column(name = "name", nullable = false)
     private String name;
+
+    @Column(name = "email", nullable = false, length = 25, unique = true)
+    private String email;
+
+
 }
