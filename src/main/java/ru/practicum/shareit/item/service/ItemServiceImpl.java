@@ -11,9 +11,14 @@ import ru.practicum.shareit.item.dto.UpdateItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.mapstruct.ap.internal.util.Strings.isNotEmpty;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,7 +31,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public ItemDto getById(long id, int userId) {
+    public ItemDto getById(long id) {
         Item item = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Item with id: " + id + " does not exist"));
         return mapper.toItemDto(item);
@@ -47,35 +52,46 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemDto> search(String text) {
-        return repository.search(text);
+    public List<ItemDto> search(String text, Integer userId) {
+        log.info("\n item search user id {}, search text {} \n ", userId, text);
+        if (text.isBlank() || text.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return mapper.mapItemDto(repository.search(text.trim().toUpperCase()));
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<ItemDto> getAll(int userId) {
         log.info("item getAll user id {} ", userId);
-        if (userId > 0) {
-            return repository.findAllByOwnerId(userId);
-        }
-        return mapper.mapItemDto(repository.findAll());
-    }
+        final UserDto owner = userService.getUserById(userId);
+         List<Item> items = repository.findAll().stream()
+                 .filter(item -> item.getOwner().getId() == owner.getId())
+                 .collect(Collectors.toList());
+            return mapper.mapItemDto(items);
+}
 
     @Transactional
     @Override
     public ItemDto update(long itemId, int userId, UpdateItemDto itemUpdate) {
-        final Item updateItem = repository.findById(itemId)
+        final UserDto owner = userService.getUserById(userId);
+        final Item updateItem = repository.findByIdAndOwner_Id(itemId, owner.getId())
                 .orElseThrow(() -> new NotFoundException("User with id: " + itemId + " does not exist"));
-        Item item = mapper.toItem(itemId, itemUpdate);
-        if (item.getName() != null && !item.getName().isEmpty()) {
-            updateItem.setName(item.getName());
+
+        if ( itemUpdate == null ) {
+            return mapper.toItemDto(updateItem);
         }
-        if (item.getDescription() != null && !item.getDescription().isEmpty()) {
-            updateItem.setDescription(item.getDescription());
+
+        if ( isNotEmpty( itemUpdate.getName() ) ) {
+            updateItem.setName( itemUpdate.getName() );
         }
-        if (item.getAvailable() != null) {
-            updateItem.setAvailable(item.getAvailable());
+
+        if ( isNotEmpty( itemUpdate.getDescription() ) ) {
+            updateItem.setDescription( itemUpdate.getDescription() );
         }
-        return mapper.toItemDto(repository.save(item));
+        if (itemUpdate.getAvailable() != null) {
+            updateItem.setAvailable( itemUpdate.getAvailable() );
+        }
+        return mapper.toItemDto(repository.save(updateItem));
     }
 }

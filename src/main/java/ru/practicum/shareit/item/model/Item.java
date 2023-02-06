@@ -4,7 +4,6 @@ import lombok.*;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
-import javax.validation.Valid;
 
 /**
  * TODO Sprint add-controllers.
@@ -30,7 +29,7 @@ public class Item {
     @Column(name = "description", nullable = false)
     private String description;
 
-    @Column(name = "available", nullable = false)
+    @Column(name = "available")
     private Boolean available;
 
     @ManyToOne

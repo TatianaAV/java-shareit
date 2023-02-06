@@ -6,17 +6,22 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
-    @Query("select  item from Item item " +
-            "where  item.available = true " +
-            "and item.name like ?1 " +
-            "and item.description like ?1 ")
-    List<ItemDto> search(String text);
+     void deleteItemByIdAndOwnerId(long id, int userId);
 
-    void deleteItemByIdAndOwnerId(long id, int userId);
 
-    List<ItemDto> findAllByOwnerId(int userId);
+    List<ItemDto> findAllByOwnerId(Integer userId);
+
+    Optional<Item> findByIdAndOwner_Id(Long id, Integer owner);
+
+
+    @Query( value = " select i from Item i  where " +
+            " i.available = true and " +
+            "  (upper(i.name) like upper(concat('%', ?1, '%')) " +
+            " or  upper(i.description) like upper(concat('%', ?1, '%')))")
+    List<Item> search(String text);
 }
 

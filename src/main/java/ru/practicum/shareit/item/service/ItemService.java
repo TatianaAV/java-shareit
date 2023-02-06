@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ItemService {
 
-    ItemDto getById(long id, int userId);
+    ItemDto getById(long id);
 
     List<ItemDto> getAll(int userId);
 
@@ -18,5 +18,5 @@ public interface ItemService {
 
     ItemDto add(int userId, CreateItemDto item);
 
-    List<ItemDto> search(String text);
+    List<ItemDto> search(String text, Integer userId);
 }

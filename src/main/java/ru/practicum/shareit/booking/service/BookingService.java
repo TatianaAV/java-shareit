@@ -13,8 +13,6 @@ public interface BookingService{
 
     void delete();
 
-    BookingDto add();
-
     List<BookingDto> search();
 
     List<BookingDto> getBookingsOwner();
@@ -22,4 +20,6 @@ public interface BookingService{
     BookingDto update(Booking booking);
 
     List<BookingDto> getBookingsOwner(int userId, StatusBooking state);
+
+    BookingDto add(Integer userId, Booking booking);
 }

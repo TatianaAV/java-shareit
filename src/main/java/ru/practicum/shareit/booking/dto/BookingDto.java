@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 
 @StartBeforeEnd
 public class BookingDto {
-
+    private Long id;
     @FutureOrPresent
     private LocalDateTime start;
 
     @Future
-    private  LocalDateTime finish;
+    private LocalDateTime finish;
 }

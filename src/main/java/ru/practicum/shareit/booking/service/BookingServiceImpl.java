@@ -9,6 +9,9 @@ import ru.practicum.shareit.booking.StatusBooking;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
@@ -21,6 +24,7 @@ import java.util.List;
 public class BookingServiceImpl implements BookingService{
 
     private final UserService userService;
+    private final ItemService itemService;
     private final UserMapper userRepositoryMapper;
         private final BookingRepository repository;
         private final BookingMapper mapper;
@@ -38,9 +42,7 @@ public class BookingServiceImpl implements BookingService{
         }
 
 
-        public Booking add(Booking booking) {
-            return repository.save(booking);
-        }
+
 
 
         public List<Item> search(String text) {
@@ -74,8 +76,11 @@ public class BookingServiceImpl implements BookingService{
 
     @Transactional
     @Override
-    public BookingDto add() {
-        return null;
+    public BookingDto add(Integer bookerId, Booking booking) {
+        final UserDto booker = userService.getUserById(bookerId);
+        final ItemDto itemDto = itemService.getById(booking.getItem().getId());
+        Booking booking1 = mapper.toBooking(bookerId, booking);
+        return mapper.toDto(repository.save(booking1));
     }
 
     @Transactional(readOnly = true)
