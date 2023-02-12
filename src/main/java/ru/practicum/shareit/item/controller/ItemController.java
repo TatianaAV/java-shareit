@@ -36,7 +36,7 @@ public class ItemController {
     @GetMapping("/{id}")
     public ItemForOwnerDto getById(@RequestHeader(name = requestHeader) int userId, @PathVariable long id) {
         log.info("ItemController вещь getById {}, запрос userId {}", id, userId);
-        return itemService.getById(id);
+        return itemService.getById(id, userId);
     }
 
     @PostMapping

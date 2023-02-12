@@ -17,7 +17,6 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -25,7 +24,6 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.mapstruct.ap.internal.util.Strings.isNotEmpty;
 
@@ -44,20 +42,18 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public ItemForOwnerDto getById(long id) {
-        Item item = repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Item with id: " + id + " does not exist"));
-        List<Comment> comments = commentRepository.findAllByItem_IdOrderByCreatedDesc(id);
-        BookingDto lastBooking = bookingMapper.toDto(repositoryBooking.findLast(id));
-        BookingDto nextBooking = bookingMapper.toDto(repositoryBooking.findNext(id));
-      /*  ItemForOwnerDto itemForOwnerDto = new ItemForOwnerDto();
-        itemForOwnerDto.setId(id);
-        itemForOwnerDto.setAvailable(item.getAvailable());
-        itemForOwnerDto.setComments(comments);
-        itemForOwnerDto.setLastBooking(lastBooking);
-        itemForOwnerDto.setNextBooking(nextBooking);*/
-
-        return mapper.toItemForOwnerDto(item, comments, lastBooking, nextBooking);
+    public ItemForOwnerDto getById(long itemId, int ownerId) {
+        Item item = repository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Item with id: " + itemId + " does not exist"));
+        List<Comment> comments = commentRepository.findAllByItemIdOrderByCreatedDesc(itemId);
+        ;
+        if (item.getOwner().getId().equals(ownerId)) {
+            BookingDto lastBooking = bookingMapper.toDto(repositoryBooking.findLast(itemId));
+            BookingDto nextBooking = bookingMapper.toDto(repositoryBooking.findNext(itemId));
+            return mapper.toItemForOwnerDto(item, comments, lastBooking, nextBooking);
+        } else {
+            return mapper.toItemForOwnerDto(item, comments, null, null);
+        }
     }
 
     @Transactional
@@ -87,9 +83,9 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Comment addComment(int bookerId, CommentCreate comment, long itemId) {
 
-        final User booker = userRepository.findById(bookerId)
+        userRepository.findById(bookerId)
                 .orElseThrow(() -> new NotFoundException("User with id: " + bookerId + " does not exist"));
-        final Item item = repository.findById(itemId)
+        repository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Item with id: " + itemId + " does not exist"));
         Booking booking =
                 repositoryBooking.findBookingByBookerAndItem(bookerId, itemId)
@@ -111,7 +107,7 @@ public class ItemServiceImpl implements ItemService {
         List<ItemForOwnerDto> itemList = new ArrayList<>();
         for (Item item : items) {
             long id = item.getId();
-            List<Comment> comments = commentRepository.findAllByItem_IdOrderByCreatedDesc(id);
+            List<Comment> comments = commentRepository.findAllByItemIdOrderByCreatedDesc(id);
             BookingDto lastBooking = bookingMapper.toDto(repositoryBooking.findLast(id));
             BookingDto nextBooking = bookingMapper.toDto(repositoryBooking.findNext(id));
             itemList.add(mapper.toItemForOwnerDto(item, comments, lastBooking, nextBooking));

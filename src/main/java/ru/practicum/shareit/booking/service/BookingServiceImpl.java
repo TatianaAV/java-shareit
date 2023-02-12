@@ -111,7 +111,7 @@ public class BookingServiceImpl implements BookingService {
         throw new NotFoundException("Вы не можете изменить бронирование, недостаточно прав.");
     }
 
-
+    @Transactional(readOnly = true)
     @Override
     public List<BookingForUser> getBookingsOwner(int ownerId, StatusBooking status) {
         User owner = userRepository.findById(ownerId).orElseThrow(() -> new NotFoundException("Ошибка, пользователь не найден"));
@@ -152,7 +152,7 @@ public class BookingServiceImpl implements BookingService {
         return new ArrayList<>();
     }
 
-
+    @Transactional(readOnly = true)
     @Override
     public List<BookingForUser> getBookingsBooker(int bookerId, StatusBooking state) {
         final User booker = userRepository.findById(bookerId).orElseThrow(() -> new NotFoundException("Ошибка пользователя, не найден"));
@@ -167,7 +167,7 @@ public class BookingServiceImpl implements BookingService {
                 return mapper.toMapForUsers(bookings);
 
             case FUTURE:
-                bookings = repository.findAllByFuture(booker);
+                bookings = repository.findAllByFuture(bookerId);
                 return mapper.toMapForUsers(bookings);
 
             case PAST:
