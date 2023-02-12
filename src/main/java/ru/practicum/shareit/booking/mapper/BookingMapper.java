@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.StatusBooking;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingForUser;
 import ru.practicum.shareit.booking.dto.CreateBooking;
@@ -16,8 +17,8 @@ import java.util.List;
 @Mapper(componentModel = "spring", uses = {UserMapper.class, ItemMapper.class})
 public interface BookingMapper {
 
-    @Mapping(target = "booker", source = "booker.id")
-    @Mapping(target = "item", source = "item.id")
+    @Mapping(target = "bookerId", source = "booker.id")
+    @Mapping(target = "itemId", source = "item.id")
     BookingDto toDto(Booking booking);
 
     @Mapping(target = "booker", source = "booking.booker")
@@ -35,7 +36,8 @@ public interface BookingMapper {
     @Mapping(target = "item.id", source = "item.id")
     @Mapping(target = "item.name", source = "item.name")
     @Mapping(target = "item.owner", source = "item.owner")
-    Booking toBooking(User booker, Item item, CreateBooking booking);
+    @Mapping(target = "status",source = "status")
+    Booking toBooking(User booker, Item item, CreateBooking booking, StatusBooking status);
 
     @Mapping(target = "id", source = "booking.id")
     @Mapping(target = "booker", source = "booking.booker")

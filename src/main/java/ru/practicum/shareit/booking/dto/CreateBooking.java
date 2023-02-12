@@ -8,6 +8,7 @@ import ru.practicum.shareit.booking.dto.annotation.StartBeforeEnd;
 import javax.validation.constraints.Future;
 import javax.validation.constraints.FutureOrPresent;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 /**
  * TODO Sprint add-bookings.
@@ -22,14 +23,14 @@ import java.sql.Timestamp;
 public class CreateBooking {
 
     @FutureOrPresent(message = "Время начала не может быть раньше текущего времени")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone ="Europe/Moscow")
     @NonNull
-    private Timestamp start;
+    private LocalDateTime start;
 
     @Future(message = "Время окончания не может быть в прошлом")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss" , timezone ="Europe/Moscow")
     @NonNull
-    private Timestamp end;
+    private LocalDateTime end;
 
     @NonNull
     private Long itemId;

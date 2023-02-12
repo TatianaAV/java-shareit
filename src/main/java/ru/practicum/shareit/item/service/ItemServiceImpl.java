@@ -17,6 +17,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -46,8 +47,8 @@ public class ItemServiceImpl implements ItemService {
         Item item = repository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Item with id: " + itemId + " does not exist"));
         List<Comment> comments = commentRepository.findAllByItemIdOrderByCreatedDesc(itemId);
-        ;
-        if (item.getOwner().getId().equals(ownerId)) {
+
+        if (item.getOwner().getId() == ownerId) {
             BookingDto lastBooking = bookingMapper.toDto(repositoryBooking.findLast(itemId));
             BookingDto nextBooking = bookingMapper.toDto(repositoryBooking.findNext(itemId));
             return mapper.toItemForOwnerDto(item, comments, lastBooking, nextBooking);
@@ -81,22 +82,27 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional
     @Override
-    public Comment addComment(int bookerId, CommentCreate comment, long itemId) {
+    public CommentDto addComment(int bookerId, CommentCreate comment, long itemId) {
 
-        userRepository.findById(bookerId)
+        User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new NotFoundException("User with id: " + bookerId + " does not exist"));
-        repository.findById(itemId)
+        Item item = repository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Item with id: " + itemId + " does not exist"));
+        LocalDateTime currentTime = LocalDateTime.now();
         Booking booking =
-                repositoryBooking.findBookingByBookerAndItem(bookerId, itemId)
-                        .orElseThrow(() -> new ValidationException("Booking with itemId : " + itemId +
-                                ", bookerId " + bookerId));
+                repositoryBooking
+                        .findBookingByBookerAndItem(bookerId, itemId,  currentTime)
+                        .orElseThrow(()-> new ValidationException("Booking with itemId : " + itemId +
+                                ", bookerId " + bookerId) );
 
-        // if (booking.getStatus().equals(StatusBooking.PAST)) {
-        Comment commentCreate = mapper.toComment(booking.getBooker(), booking.getItem(), comment);
-        commentCreate.setCreated(Timestamp.valueOf(LocalDateTime.now()));
-        return commentRepository.save(commentCreate);
-        //  } else throw new ValidationException("Бронирование не завершено, статус ", booking.getStatus().toString());
+
+        if (booking.getBooker().getId()== bookerId) {
+            Comment commentCreate = mapper.toComment(booking.getBooker(), booking.getItem(), comment);
+            commentCreate.setCreated(Timestamp.valueOf(LocalDateTime.now()));
+            return mapper.toCommentDto(commentRepository.save(commentCreate));
+        } else {
+            throw new ValidationException("Вы не можете оставить комментарий, у вас не было бронирований");
+        }
     }
 
     @Transactional(readOnly = true)

@@ -31,12 +31,12 @@ public class Booking {
     private Long id;
 
     @Column(name = "start")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private Timestamp start;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone ="Europe/Moscow")
+    private LocalDateTime start;
 
     @Column(name = "finish")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private Timestamp end;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone ="Europe/Moscow")
+    private LocalDateTime end;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 10, nullable = false)

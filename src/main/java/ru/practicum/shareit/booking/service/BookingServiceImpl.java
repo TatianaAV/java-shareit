@@ -17,9 +17,14 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
+import static java.time.LocalTime.now;
 
 
 @Slf4j
@@ -55,7 +60,7 @@ public class BookingServiceImpl implements BookingService {
         // if (booking.getStart().before(Timestamp.valueOf(LocalDateTime.now()))) {
         //       throw new ValidationException("Время начала бронирования раньше текущего времени");//404
         //    }
-        if (booking.getEnd().before(booking.getStart())) {
+        if (booking.getEnd().isBefore(booking.getStart())) {
             throw new ValidationException("Время начала бронирования после окончания");
         }
         if (Objects.equals(booker.getId(), item.getOwner().getId())) {
@@ -64,9 +69,7 @@ public class BookingServiceImpl implements BookingService {
         if (!item.getAvailable()) {
             throw new ValidationException("Вещь недоступна");
         }
-        Booking booking1 = mapper.toBooking(booker, item, booking);
-        System.out.println(booking.getStart());
-        booking1.setStatus(StatusBooking.WAITING);
+        Booking booking1 = mapper.toBooking(booker, item, booking, StatusBooking.WAITING);
         BookingForUser bookingCreate = mapper.toBookingForUser(repository.save(booking1));
         System.out.println(bookingCreate.getStart());
         return bookingCreate;
@@ -134,7 +137,8 @@ public class BookingServiceImpl implements BookingService {
                 return mapper.toMapForUsers(bookings);
 
             case PAST:
-                bookings = repository.findAllOwnerPast(ownerId);
+                bookings = repository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(owner, LocalDateTime.now());
+                System.out.println(LocalDateTime.now());
                 return mapper.toMapForUsers(bookings);
 
             case REJECTED:

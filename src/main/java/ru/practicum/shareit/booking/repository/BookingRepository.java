@@ -6,7 +6,9 @@ import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.StatusBooking;
 import ru.practicum.shareit.user.model.User;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,7 +16,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query(value = "select  b from Booking b " +
             "where b.id = ?1  and (b.booker.id = ?2 or b.item.owner.id = ?2)")
-    Optional<Booking> findByIdByOwnerId(Long bookingId, Integer booker);
+    Optional<Booking> findByIdByOwnerId(Long bookingId, int booker);
 
     /* @Query("select  item from Item item " +
             "where  item.available = true " +
@@ -31,36 +33,43 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findBookingByItem_OwnerId(int ownerId);
 
 
-    //addComment PAST
-    @Query(nativeQuery = true, value = "SELECT * FROM bookings WHERE booker_id = ?1  AND item_id= ?2  AND finish < CURRENT_TIMESTAMP  LIMIT 1")
-    Optional<Booking> findBookingByBookerAndItem(int bookerId, long itemId);
+    //addComment PAST find booking item booker past
+    @Query(nativeQuery = true, value = "SELECT * FROM bookings WHERE booker_id = ?1  AND item_id= ?2" +
+            "            AND status =  'APPROVED'   AND  finish < ?3  LIMIT 1")
+    Optional<Booking> findBookingByBookerAndItem(int bookerId, long itemId, LocalDateTime currentTime);
 
-    //getBooking for booker
-    @Query(nativeQuery = true, value = "SELECT * FROM bookings WHERE  booker_id = ? AND status IN ('APPROVED', 'WAITING' ) ORDER BY start DESC")
+    // BOOKER ALL
+    @Query(nativeQuery = true, value = "SELECT * FROM bookings WHERE  booker_id = ? " +
+            " AND status IN ('APPROVED', 'WAITING' ) ORDER BY start DESC")
     List<Booking> findAllByBooker(int bookerId);
 
-
-    @Query("SELECT b FROM Booking b WHERE  b.booker.id = ?1 and b.end <  CURRENT_TIMESTAMP")
+// BOOKER PAST
+    @Query(nativeQuery = true, value = " SELECT * FROM bookings b " +
+            "                         WHERE b.booker_id = ? " +
+            "                        AND CURRENT_TIMESTAMP < b.finish AND b.status = 'APPROVED'" +
+            "                      ORDER BY b.start")
     List<Booking> findAllByPast(int bookerId);
 
+    // BOOKER CURRENT
     @Query("SELECT b FROM Booking b WHERE b.booker.id = ?1  AND CURRENT_TIMESTAMP BETWEEN b.start AND  b.end  ")
     List<Booking> findAllByCurrent(int booker);
 
-    // or b.status = 'WAITING')
+    // BOOKER FUTURE
     @Query("SELECT b FROM Booking b WHERE b.booker.id = ?1  " +
             "AND b.start > CURRENT_TIMESTAMP " +
             "AND (b.status = 'APPROVED' OR  b.status = 'WAITING')" +
             "ORDER BY b.start desc ")
     List<Booking> findAllByFuture(int bookerId);
 
+//BOOKER  APPROVE, WAITING, REJECTED
     @Query("SELECT b FROM Booking b WHERE b.booker.id = ?1  AND b.status = ?2")
     List<Booking> findAllByBookerStatus(int booker, StatusBooking status);
 
-    //getItem whith Booking
-    @Query(nativeQuery = true, value = "SELECT * FROM bookings b " +
-            " WHERE b.item_id = ?1 " +
-            " AND b.finish < CURRENT_TIMESTAMP AND b.status = 'APPROVED' " +
-            " ORDER BY b.start DESC LIMIT 1")
+
+    @Query(nativeQuery = true, value = "SELECT * FROM bookings b" +
+            "             WHERE b.item_id = ? " +
+            "             AND CURRENT_TIMESTAMP < b.finish AND b.status = 'APPROVED'" +
+            "             ORDER BY b.start LIMIT 1")
     Booking findLast(long itemId);
 
     @Query(nativeQuery = true, value = "SELECT * FROM bookings b  " +
@@ -69,27 +78,32 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "             ORDER BY b.start DESC LIMIT 1")
     Booking findNext(long id);
 
-    //get booking owner
+    //OWNER ALL
     @Query(value = "SELECT b FROM Booking b " +
             " WHERE b.item.owner.id = ?1 AND (b.status = 'APPROVED' OR  b.status = 'WAITING') " +
             " ORDER BY b.start DESC")
     List<Booking> findAllByItemOwner(int ownerId);
 
-    //Past owner
-    @Query("SELECT b FROM Booking b WHERE b.item.owner.id = ?1 " +
-            "           AND b.end < CURRENT_TIMESTAMP AND b.status = 'APPROVED' " +
-            "            ORDER BY b.start DESC")
+    //OWNER PAST
+    @Query(nativeQuery = true, value = "SELECT * FROM bookings b" +
+            "             WHERE b.item_id = ? " +
+            "             AND CURRENT_TIMESTAMP < b.finish AND b.status = 'APPROVED'" +
+            "             ORDER BY b.start")
     List<Booking> findAllOwnerPast(int owner);
 
+    List<Booking> findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(User owner, LocalDateTime now);
+
+//OWNER CURRENT
     @Query("SELECT b FROM Booking b WHERE b.item.owner.id = ?1 AND CURRENT_TIMESTAMP BETWEEN b.start AND b.end")
     List<Booking> findAllOwnerCurrent(int ownerId);
 
-    //rejected
-    // @Query("SELECT b FROM Booking b WHERE b.item.owner.id = ?1  AND b.status = ?2")
-    List<Booking> findAllByItemOwnerIdAndStatusEquals(int ownerId, StatusBooking status);
 
+//OWNER FUTURE
     @Query("SELECT b FROM Booking b WHERE b.item.owner.id = ?1 " +
             " AND b.start > CURRENT_TIMESTAMP AND (b.status = 'APPROVED' OR  b.status = 'WAITING') " +
             " ORDER BY b.start DESC")
     List<Booking> findAllOwnerFuture(int ownerId);
+
+    //owner APPROVE, WAITING, REJECTED
+    List<Booking> findAllByItemOwnerIdAndStatusEquals(int ownerId, StatusBooking status);
 }
