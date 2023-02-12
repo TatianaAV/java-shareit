@@ -8,6 +8,7 @@ import ru.practicum.shareit.user.model.User;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Validated
 @Setter
@@ -25,8 +26,8 @@ public class Comment {
     private Long id;
 
    @Column(name = "created")
-   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private Timestamp created;
+   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone ="Europe/Moscow")
+   private LocalDateTime created;
 
     @Column(name = "content", nullable = false)
     @NotBlank(message = "comment is required")

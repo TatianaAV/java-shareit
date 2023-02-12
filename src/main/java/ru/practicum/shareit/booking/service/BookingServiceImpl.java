@@ -175,7 +175,7 @@ public class BookingServiceImpl implements BookingService {
                 return mapper.toMapForUsers(bookings);
 
             case PAST:
-                bookings = repository.findAllByPast(booker.getId());
+                bookings = repository.findAllByPast(bookerId);
                 return mapper.toMapForUsers(bookings);
 
             case REJECTED:

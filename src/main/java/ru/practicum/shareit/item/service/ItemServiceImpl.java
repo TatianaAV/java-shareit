@@ -46,7 +46,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemForOwnerDto getById(long itemId, int ownerId) {
         Item item = repository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Item with id: " + itemId + " does not exist"));
-        List<Comment> comments = commentRepository.findAllByItemIdOrderByCreatedDesc(itemId);
+        List<CommentDto> comments = mapper.mapCommentDto(commentRepository.findAllByItemIdOrderByCreatedDesc(itemId));
 
         if (item.getOwner().getId() == ownerId) {
             BookingDto lastBooking = bookingMapper.toDto(repositoryBooking.findLast(itemId));
@@ -97,8 +97,7 @@ public class ItemServiceImpl implements ItemService {
 
 
         if (booking.getBooker().getId()== bookerId) {
-            Comment commentCreate = mapper.toComment(booking.getBooker(), booking.getItem(), comment);
-            commentCreate.setCreated(Timestamp.valueOf(LocalDateTime.now()));
+            Comment commentCreate = mapper.toComment(booking.getBooker(), booking.getItem(), comment,LocalDateTime.now());
             return mapper.toCommentDto(commentRepository.save(commentCreate));
         } else {
             throw new ValidationException("Вы не можете оставить комментарий, у вас не было бронирований");
@@ -113,7 +112,7 @@ public class ItemServiceImpl implements ItemService {
         List<ItemForOwnerDto> itemList = new ArrayList<>();
         for (Item item : items) {
             long id = item.getId();
-            List<Comment> comments = commentRepository.findAllByItemIdOrderByCreatedDesc(id);
+            List<CommentDto> comments = mapper.mapCommentDto(commentRepository.findAllByItemIdOrderByCreatedDesc(id));
             BookingDto lastBooking = bookingMapper.toDto(repositoryBooking.findLast(id));
             BookingDto nextBooking = bookingMapper.toDto(repositoryBooking.findNext(id));
             itemList.add(mapper.toItemForOwnerDto(item, comments, lastBooking, nextBooking));

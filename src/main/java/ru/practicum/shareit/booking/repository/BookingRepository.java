@@ -46,7 +46,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 // BOOKER PAST
     @Query(nativeQuery = true, value = " SELECT * FROM bookings b " +
             "                         WHERE b.booker_id = ? " +
-            "                        AND CURRENT_TIMESTAMP < b.finish AND b.status = 'APPROVED'" +
+            "                        AND CURRENT_TIMESTAMP > b.finish AND b.status = 'APPROVED'" +
             "                      ORDER BY b.start")
     List<Booking> findAllByPast(int bookerId);
 
@@ -68,7 +68,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query(nativeQuery = true, value = "SELECT * FROM bookings b" +
             "             WHERE b.item_id = ? " +
-            "             AND CURRENT_TIMESTAMP < b.finish AND b.status = 'APPROVED'" +
+            "             AND CURRENT_TIMESTAMP > b.finish AND b.status = 'APPROVED'" +
             "             ORDER BY b.start LIMIT 1")
     Booking findLast(long itemId);
 
