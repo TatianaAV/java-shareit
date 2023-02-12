@@ -8,6 +8,7 @@ public enum StatusBooking {
     FUTURE,
     PAST,
     REJECTED,
+    CANCELLED,
     WAITING,
     APPROVED;
 
@@ -17,7 +18,6 @@ public enum StatusBooking {
                 return Optional.of(value);
             }
         } return Optional.empty();
-
     }
 }
 

@@ -1,11 +1,13 @@
 package ru.practicum.shareit.exeption;
 
-import com.sun.jdi.InternalException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpServerErrorException;
+import ru.practicum.shareit.booking.service.ErrorResponse;
 
 import javax.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
@@ -21,7 +23,7 @@ public class ErrorHandler {
     @ResponseStatus(BAD_REQUEST)
     public Map<HttpStatus, String> handlerValidationException(HttpServletRequest request, final ValidationException e) {
         log.error("Requested URL=" + request.getRequestURL());
-        log.error("BAD_REQUEST {}", e.getMessage());
+        log.error("400 BAD_REQUEST {}", e.getMessage());
         return Map.of(BAD_REQUEST, e.getMessage());
     }
 
@@ -43,7 +45,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(INTERNAL_SERVER_ERROR)
-    public Map<HttpStatus, String> handlerInternalException(HttpServletRequest request, final InternalException e) {
+    public Map<HttpStatus, String> handlerInternalException(HttpServletRequest request, HttpServerErrorException.InternalServerError e) {
         log.error("Requested URL=" + request.getRequestURL());
         log.error("500 CONFLICT {}", e.getMessage());
         return Map.of(INTERNAL_SERVER_ERROR, e.getMessage());
@@ -57,5 +59,16 @@ public class ErrorHandler {
         log.error("SERVER_ERROR {}", e.getMessage());
         return Map.of(INTERNAL_SERVER_ERROR, e.getMessage());
     }
-}
 
+
+
+    @ResponseStatus(INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(StatusBookingException.class)
+   public ErrorResponse handleAlreadyExistException(final StatusBookingException ex){
+        return new ErrorResponse(ex.getMessage());
+    }
+    private static ErrorResponse getErrorMessage(Exception ex) {
+        return new ErrorResponse(ex.getMessage());
+    }
+
+}
