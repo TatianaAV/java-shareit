@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -111,6 +112,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Transactional
+    @Modifying
     @Override
     public ItemDto update(long itemId, int ownerId, UpdateItemDto itemUpdate) {
         final Item updateItem = repository.findByIdAndOwner_Id(itemId, ownerId)

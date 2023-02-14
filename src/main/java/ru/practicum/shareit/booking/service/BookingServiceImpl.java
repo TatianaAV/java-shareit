@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingForUser;
@@ -67,6 +68,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Transactional
+    @Modifying
     @Override
     public BookingForUser updateStatus(long bookingId, int userId, Boolean approved) {
         Booking update;
