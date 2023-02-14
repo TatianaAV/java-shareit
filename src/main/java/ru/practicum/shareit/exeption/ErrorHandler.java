@@ -60,8 +60,8 @@ public class ErrorHandler {
     }
 
     @ResponseStatus(INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(StatusBookingException.class)
-    public ErrorResponse handleAlreadyExistException(HttpServletRequest request, final StatusBookingException e) {
+    @ExceptionHandler(IllegalStateException.class)
+    public ErrorResponse handleAlreadyExistException(HttpServletRequest request, final  IllegalStateException e) {
         log.error("Requested URL=" + request.getRequestURL());
         log.error("500 CONFLICT StatusBookingException {}", e.getMessage());
         return new ErrorResponse(e.getMessage());

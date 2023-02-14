@@ -11,7 +11,6 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
-import ru.practicum.shareit.validation.ValidationService;
 
 import java.util.List;
 
@@ -21,7 +20,7 @@ import static org.mapstruct.ap.internal.util.Strings.isNotEmpty;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final ValidationService validationService;
+
     private final UserRepository repository;
     private final UserMapper mapper;
 
@@ -49,8 +48,9 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public UserDto updateUser(UpdateUserDto user, int id) {
-        User foundUser = validationService.validateUser(id);
+    public UserDto updateUser(UpdateUserDto user, int userId) {
+        User foundUser = repository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id: " + userId + " does not exist"));
         if (user == null) {
             return mapper.toUserDto(foundUser);
         }

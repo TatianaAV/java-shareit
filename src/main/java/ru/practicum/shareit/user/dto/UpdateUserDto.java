@@ -7,6 +7,8 @@ import lombok.Setter;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 
 @Validated
@@ -18,6 +20,8 @@ public class UpdateUserDto {
 
     private int id;
 
+    @Size(groups = {CreatUserDto.class})
+    @NotBlank(groups = {CreatUserDto.class})
     private String name;
 
     @Email(groups = {CreatUserDto.class})

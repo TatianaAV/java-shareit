@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exeption.NotFoundException;
 import ru.practicum.shareit.exeption.ValidationException;
@@ -18,7 +18,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.validation.ValidationService;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import static org.mapstruct.ap.internal.util.Strings.isNotEmpty;
 @Service
 public class ItemServiceImpl implements ItemService {
 
-    private final ValidationService validationService;
+    private final UserRepository userRepository;
     private final ItemRepository repository;
     private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;
@@ -63,7 +63,8 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public ItemDto add(int userId, CreateItemDto item) {
-        User owner = validationService.validateUser(userId);
+        User owner = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id: " + userId + " does not exist"));
         Item newItem = itemMapper.createItemDtoToItem(owner, item);
         return itemMapper.toItemDto(repository.save(newItem));
     }
@@ -81,7 +82,10 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public CommentDto addComment(int bookerId, CommentCreate comment, long itemId) {
-        Booking booking = validationService.validateBooking(bookerId, itemId, LocalDateTime.now());
+        Booking booking = bookingRepository
+                .findBookingByBookerAndItem(bookerId, itemId, LocalDateTime.now())
+                .orElseThrow(() -> new ValidationException("Booking with itemId : " + itemId +
+                        ", bookerId " + bookerId));
         if (booking.getBooker().getId() == bookerId) {
             Comment commentCreate = commentMapper.toComment(booking.getBooker(), booking.getItem(), comment, LocalDateTime.now());
             return commentMapper.toCommentDto(commentRepository.save(commentCreate));
