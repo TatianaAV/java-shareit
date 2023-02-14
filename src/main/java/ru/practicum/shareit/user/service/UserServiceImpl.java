@@ -2,18 +2,16 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.exeption.AlreadyExistException;
 import ru.practicum.shareit.exeption.NotFoundException;
-import ru.practicum.shareit.user.UserShort;
 import ru.practicum.shareit.user.dto.CreatUserDto;
 import ru.practicum.shareit.user.dto.UpdateUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.validation.ValidationService;
 
 import java.util.List;
 
@@ -23,13 +21,13 @@ import static org.mapstruct.ap.internal.util.Strings.isNotEmpty;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-
+    private final ValidationService validationService;
     private final UserRepository repository;
     private final UserMapper mapper;
 
     @Transactional(readOnly = true)
     @Override
-    public List<UserDto> getUsers() {//изменено на автоматический репозиторий
+    public List<UserDto> getUsers() {
         List<User> users = repository.findAll();
         return mapper.mapToUserDto(users);
     }
@@ -39,7 +37,7 @@ public class UserServiceImpl implements UserService {
     public UserDto getUserById(Integer userId) {
         User user = repository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id: " + userId + " does not exist"));
-    return mapper.toUserDto(user);
+        return mapper.toUserDto(user);
     }
 
     @Transactional
@@ -52,22 +50,16 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public UserDto updateUser(UpdateUserDto user, int id) {
-        User foundUser = repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User with id: " + id + " does not exist"));
-//User updateUser = mapper.toUser(foundUser, user);
-// генерирует else {
-//            updateUser.setEmail( null );
-//        } не получается исправить
-        if ( user == null ) {
+        User foundUser = validationService.validateUser(id);
+        if (user == null) {
             return mapper.toUserDto(foundUser);
         }
-        if ( isNotEmpty( user.getName() ) ) {
-            foundUser.setName( user.getName() );
+        if (isNotEmpty(user.getName())) {
+            foundUser.setName(user.getName());
         }
-        if ( isNotEmpty( user.getEmail() ) ) {
-            foundUser.setEmail( user.getEmail() );
+        if (isNotEmpty(user.getEmail())) {
+            foundUser.setEmail(user.getEmail());
         }
-
         return mapper.toUserDto(repository.save(foundUser));
     }
 
@@ -76,9 +68,4 @@ public class UserServiceImpl implements UserService {
     public void deleteUserById(int userId) {
         repository.deleteById(userId);
     }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<UserShort> findAllByEmailContainingIgnoreCase(String emailSearch){
-     return repository.findAllByEmailContainingIgnoreCase(emailSearch);}
 }

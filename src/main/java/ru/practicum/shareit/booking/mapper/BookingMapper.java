@@ -2,8 +2,8 @@ package ru.practicum.shareit.booking.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.practicum.shareit.booking.Booking;
-import ru.practicum.shareit.booking.StatusBooking;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.StatusBooking;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingForUser;
 import ru.practicum.shareit.booking.dto.CreateBooking;
@@ -22,8 +22,6 @@ public interface BookingMapper {
     BookingDto toDto(Booking booking);
 
     @Mapping(target = "booker", source = "booking.booker")
-  //  @Mapping(target = "booker", source = "booking.booker")
-  //  @Mapping(target = "booker", source = "booking.booker")
     @Mapping(target = "item.id", source = "booking.item.id")
     @Mapping(target = "item.name", source = "booking.item.name")
     @Mapping(target = "item.owner", source = "booking.item.owner")
@@ -39,12 +37,5 @@ public interface BookingMapper {
     @Mapping(target = "status",source = "status")
     Booking toBooking(User booker, Item item, CreateBooking booking, StatusBooking status);
 
-    @Mapping(target = "id", source = "booking.id")
-    @Mapping(target = "booker", source = "booking.booker")
-    @Mapping(target = "item", source = "item1")
-    @Mapping(target = "item.owner", source = "owner")
-    Booking toBooking(User owner, Item item1, Booking booking);
-
-    List<BookingDto> toMapDto(List<Booking> bookings);
     List<BookingForUser> toMapForUsers(List<Booking> bookings);
 }

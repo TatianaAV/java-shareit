@@ -2,8 +2,7 @@ package ru.practicum.shareit.booking.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
-import ru.practicum.shareit.booking.StatusBooking;
-import ru.practicum.shareit.booking.dto.annotation.StartBeforeEnd;
+import ru.practicum.shareit.booking.model.StatusBooking;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
@@ -17,7 +16,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@StartBeforeEnd
 public class BookingForUser {
 
     private Long id;

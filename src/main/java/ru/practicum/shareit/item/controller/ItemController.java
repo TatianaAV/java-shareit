@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.*;
-import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
@@ -16,8 +15,9 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(path ="/items")
+@RequestMapping(path = "/items")
 public class ItemController {
+
     private final String requestHeader = "X-Sharer-User-Id";
     private final ItemService itemService;
 
@@ -64,11 +64,4 @@ public class ItemController {
         log.info("ItemController delete {}, userId {}", id, userId);
         itemService.delete(id, userId);
     }
-    /*   Комментарий можно добавить по эндпоинту POST /items/{itemId}/comment, создайте в контроллере метод для него.
-                Реализуйте логику по добавлению нового комментария к вещи в сервисе ItemServiceImpl. Для этого также
-                понадобится создать интерфейс CommentRepository. Не забудьте добавить проверку, что пользователь,
-                 который пишет комментарий, действительно брал вещь в аренду.
-        Осталось разрешить пользователям просматривать комментарии других пользователей. Отзывы можно будет увидеть
-        по двум эндпоинтам — по GET /items/{itemId} для одной конкретной вещи и по
-        GET /items для всех вещей данного пользователя.*/
 }

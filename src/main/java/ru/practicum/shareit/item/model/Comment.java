@@ -7,7 +7,6 @@ import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Validated
@@ -26,7 +25,7 @@ public class Comment {
     private Long id;
 
    @Column(name = "created")
-   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone ="Europe/Moscow")
+   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Europe/Moscow")
    private LocalDateTime created;
 
     @Column(name = "content", nullable = false)

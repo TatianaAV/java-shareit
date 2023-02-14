@@ -2,10 +2,8 @@ package ru.practicum.shareit.user.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.user.UserShort;
 import ru.practicum.shareit.user.dto.CreatUserDto;
 import ru.practicum.shareit.user.dto.UpdateUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -38,13 +36,7 @@ public class UserController {
         return userService.getUserById(id);
     }
 
-    @GetMapping("/search")
-    public List<UserShort> searchEmail(@RequestParam(required = false) String text) {
-        log.info("userController searchEmail");
-        return userService.findAllByEmailContainingIgnoreCase(text);
-    }
-
-    @PostMapping
+ @PostMapping
     public UserDto createUser(@Validated @RequestBody CreatUserDto user) {
         log.info("userController createUser");
         System.out.println(user);

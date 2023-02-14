@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.sql.Timestamp;
+
 import java.time.LocalDateTime;
 
 @Getter
@@ -16,6 +16,6 @@ public class CommentDto {
     private Long id;
     private String text;
     private String authorName;
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone ="Europe/Moscow")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Europe/Moscow")
     private LocalDateTime created;
 }
