@@ -25,8 +25,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mapstruct.ap.internal.util.Strings.isNotEmpty;
-
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -120,10 +118,10 @@ public class ItemServiceImpl implements ItemService {
         if (itemUpdate == null) {
             return itemMapper.toItemDto(updateItem);
         }
-        if (isNotEmpty(itemUpdate.getName())) {
+        if (itemUpdate.getName() != null) {
             updateItem.setName(itemUpdate.getName());
         }
-        if (isNotEmpty(itemUpdate.getDescription())) {
+        if (itemUpdate.getDescription() != null) {
             updateItem.setDescription(itemUpdate.getDescription());
         }
         if (itemUpdate.getAvailable() != null) {

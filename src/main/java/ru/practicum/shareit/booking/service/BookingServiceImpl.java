@@ -22,9 +22,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-import static ru.practicum.shareit.validation.ValidationService.validateStatusBooker;
-import static ru.practicum.shareit.validation.ValidationService.validateStatusOwner;
-
 
 @Slf4j
 @RequiredArgsConstructor
@@ -76,12 +73,29 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
         if (userId == booking.getItem().getOwner().getId()) {
-            validateStatusOwner(approved, booking);
+            if (approved && booking.getStatus().equals(StatusBooking.APPROVED)) {
+                throw new ValidationException("Бронирование уже было одобрено");
+            }
+
+            if (approved && booking.getStatus().equals(StatusBooking.WAITING)) {
+                booking.setStatus(StatusBooking.APPROVED);
+            }
+
+            if (!approved && booking.getStatus().equals(StatusBooking.WAITING)) {
+                booking.setStatus(StatusBooking.REJECTED);
+            }
             update = bookingRepository.save(booking);
             return mapper.toBookingForUser(update);
         }
         if (userId == booking.getBooker().getId()) {
-            validateStatusBooker(approved, booking);
+            if (!approved && !booking.getStatus().equals(StatusBooking.CURRENT)
+                    && (booking.getStatus().equals(StatusBooking.WAITING)
+                    || booking.getStatus().equals(StatusBooking.APPROVED))) {
+                booking.setStatus(StatusBooking.CANCELLED);
+            }
+            if (approved) {
+                throw new NotFoundException("Бронирование может быть одобрено только владельцем");
+            }
             update = bookingRepository.save(booking);
             return mapper.toBookingForUser(update);
         }

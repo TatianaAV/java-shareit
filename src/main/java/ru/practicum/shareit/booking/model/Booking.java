@@ -42,7 +42,7 @@ public class Booking {
     @JoinColumn(name = "booker_id", nullable = false)
     private User booker;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "item_id", nullable = false)
     @ToString.Exclude
     private Item item;

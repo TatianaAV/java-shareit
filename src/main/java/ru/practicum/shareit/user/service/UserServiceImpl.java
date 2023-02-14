@@ -15,27 +15,25 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
 
-import static org.mapstruct.ap.internal.util.Strings.isNotEmpty;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
     private final UserMapper mapper;
 
     @Transactional(readOnly = true)
     @Override
     public List<UserDto> getUsers() {
-        List<User> users = repository.findAll();
+        List<User> users = userRepository.findAll();
         return mapper.mapToUserDto(users);
     }
 
     @Transactional(readOnly = true)
     @Override
     public UserDto getUserById(Integer userId) {
-        User user = repository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id: " + userId + " does not exist"));
         return mapper.toUserDto(user);
     }
@@ -44,30 +42,31 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto createUser(CreatUserDto createUser) {
         User user = mapper.toUser(createUser);
-        return mapper.toUserDto(repository.save(user));
+        return mapper.toUserDto(userRepository.save(user));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Modifying
     @Override
     public UserDto updateUser(UpdateUserDto user, int userId) {
-        User foundUser = repository.findById(userId)
+        User foundUser = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id: " + userId + " does not exist"));
         if (user == null) {
             return mapper.toUserDto(foundUser);
         }
-        if (isNotEmpty(user.getName())) {
+        if (user.getName() != null) {
             foundUser.setName(user.getName());
         }
-        if (isNotEmpty(user.getEmail())) {
+        if (user.getEmail() != null) {
             foundUser.setEmail(user.getEmail());
         }
-        return mapper.toUserDto(repository.save(foundUser));
+        foundUser = userRepository.save(foundUser);
+        return mapper.toUserDto(foundUser);
     }
 
     @Transactional
     @Override
     public void deleteUserById(int userId) {
-        repository.deleteById(userId);
+        userRepository.deleteById(userId);
     }
 }
