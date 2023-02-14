@@ -27,6 +27,4 @@ public class User {
 
     @Column(name = "email", nullable = false, length = 25, unique = true)
     private String email;
-
-
 }

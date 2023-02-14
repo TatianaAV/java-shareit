@@ -1,6 +1,9 @@
 package ru.practicum.shareit.user.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.Email;
@@ -15,8 +18,8 @@ public class UpdateUserDto {
 
     private int id;
 
-    @Email(message = "Email не соответствует формату")
-    private String email;
     private String name;
 
+    @Email(groups = {CreatUserDto.class})
+    private  String email;
 }

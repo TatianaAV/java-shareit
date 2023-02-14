@@ -18,14 +18,12 @@ public interface UserMapper {
 
     UserDto toUserDto(User user);
 
-    User toUser(UpdateUserDto user);
-
+    @Mapping(target = "id", ignore = true)
     User toUser(CreatUserDto user);
 
-    User userDtoToUser(UserDto user);
 
     @Mapping(target = "id", ignore = true)
-    User toUser(@MappingTarget() User updateUser, UpdateUserDto user);
+    User toUser(@MappingTarget User updateUser, UpdateUserDto user);
 
     @Condition
     default boolean isNotEmpty(String value) {

@@ -19,6 +19,7 @@ import javax.validation.constraints.Null;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateItemDto {
+
     private String name;
     private String description;
     private Boolean available;
