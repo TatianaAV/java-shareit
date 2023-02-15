@@ -1,15 +1,18 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.*;
-import org.springframework.validation.annotation.Validated;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Validated
+@Valid
 public class CommentCreate {
 
     @NotBlank(message = "comment is required")

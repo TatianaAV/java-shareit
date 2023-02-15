@@ -8,15 +8,10 @@ import ru.practicum.shareit.user.model.User;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-bookings.
- */
-
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 @Entity
 @Table(name = "bookings", schema = "public")
 public class Booking {
@@ -46,4 +41,25 @@ public class Booking {
     @JoinColumn(name = "item_id", nullable = false)
     @ToString.Exclude
     private Item item;
+
+    @PrePersist
+    public void setStatus() {
+        if (this.status == null) {
+            this.status = StatusBooking.WAITING;
+           // return;
+        }
+   /*     if (this.status.equals(StatusBooking.APPROVED)) {
+            if (this.end != null && this.end.isBefore(LocalDateTime.now())) {
+                this.status = StatusBooking.PAST;
+            }
+            if (this.start != null && this.start.isAfter(LocalDateTime.now())) {
+                this.status = StatusBooking.FUTURE;
+            } else {
+                if (this.start != null && this.start.isBefore(LocalDateTime.now())
+                        && this.end.isAfter(LocalDateTime.now())) {
+                    this.status = StatusBooking.CURRENT;
+                }
+            }
+        }*/
+    }
 }

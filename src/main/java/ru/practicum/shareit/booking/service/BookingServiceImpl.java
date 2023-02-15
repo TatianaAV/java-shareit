@@ -1,8 +1,6 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingForUser;
@@ -23,9 +21,9 @@ import java.util.List;
 import java.util.Objects;
 
 
-@Slf4j
 @RequiredArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
 
     private final UserRepository userRepository;
@@ -33,7 +31,6 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final BookingMapper mapper;
 
-    @Transactional(readOnly = true)
     @Override
     public BookingForUser getById(long bookingId, int userId) {
         Booking booking = bookingRepository.findByIdByOwnerId(bookingId, userId)
@@ -51,6 +48,10 @@ public class BookingServiceImpl implements BookingService {
         final User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new NotFoundException("User with id: " + bookerId + " does not exist"));
         final Item item = itemRepository.findById(booking.getItemId()).orElseThrow(() -> new NotFoundException("вещь не найдена"));
+
+        if (booking.getEnd().equals(booking.getStart())) {
+            throw new ValidationException("Время начала бронирования не может быть временем начала");
+        }
         if (booking.getEnd().isBefore(booking.getStart())) {
             throw new ValidationException("Время начала бронирования после окончания");
         }
@@ -60,15 +61,13 @@ public class BookingServiceImpl implements BookingService {
         if (!item.getAvailable()) {
             throw new ValidationException("Вещь недоступна");
         }
-        Booking booking1 = mapper.toBooking(booker, item, booking, StatusBooking.WAITING);
+        Booking booking1 = mapper.toBooking(booking, booker, item);
         return mapper.toBookingForUser(bookingRepository.save(booking1));
     }
 
     @Transactional
-    @Modifying
     @Override
     public BookingForUser updateStatus(long bookingId, int userId, Boolean approved) {
-        Booking update;
         final Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
@@ -76,16 +75,13 @@ public class BookingServiceImpl implements BookingService {
             if (approved && booking.getStatus().equals(StatusBooking.APPROVED)) {
                 throw new ValidationException("Бронирование уже было одобрено");
             }
-
             if (approved && booking.getStatus().equals(StatusBooking.WAITING)) {
                 booking.setStatus(StatusBooking.APPROVED);
             }
-
             if (!approved && booking.getStatus().equals(StatusBooking.WAITING)) {
                 booking.setStatus(StatusBooking.REJECTED);
             }
-            update = bookingRepository.save(booking);
-            return mapper.toBookingForUser(update);
+            return mapper.toBookingForUser(booking);
         }
         if (userId == booking.getBooker().getId()) {
             if (!approved && !booking.getStatus().equals(StatusBooking.CURRENT)
@@ -96,14 +92,11 @@ public class BookingServiceImpl implements BookingService {
             if (approved) {
                 throw new NotFoundException("Бронирование может быть одобрено только владельцем");
             }
-            update = bookingRepository.save(booking);
-            return mapper.toBookingForUser(update);
+            return mapper.toBookingForUser(booking);
         }
         throw new NotFoundException("Вы не можете изменить бронирование, недостаточно прав.");
     }
 
-
-    @Transactional(readOnly = true)
     @Override
     public List<BookingForUser> getBookingsOwner(int ownerId, String stateParam) {
         final User owner = userRepository.findById(ownerId)
@@ -125,7 +118,6 @@ public class BookingServiceImpl implements BookingService {
 
             case PAST:
                 bookings = bookingRepository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(owner, LocalDateTime.now());
-                System.out.println(LocalDateTime.now());
                 break;
 
             case REJECTED:
@@ -138,14 +130,13 @@ public class BookingServiceImpl implements BookingService {
 
             case APPROVED:
                 bookings = bookingRepository.findAllByItemOwnerIdAndStatusEquals(ownerId, StatusBooking.APPROVED);
-               break;
+                break;
             default:
                 throw new IllegalStateException("Unexpected value: " + status);
         }
         return mapper.toMapForUsers(bookings);
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<BookingForUser> getBookingsBooker(int bookerId, String stateParam) {
         StatusBooking status = StatusBooking.from(stateParam);

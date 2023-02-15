@@ -4,12 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.validation.annotation.Validated;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Email;
 
 
-@Validated
+@Valid
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,6 +20,6 @@ public class UpdateUserDto {
 
     private String name;
 
-    @Email(groups = {CreatUserDto.class})
+    @Email(message = "Email не соответствует формату")
     private  String email;
 }

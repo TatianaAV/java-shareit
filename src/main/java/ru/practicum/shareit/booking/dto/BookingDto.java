@@ -8,15 +8,10 @@ import javax.validation.constraints.Future;
 import javax.validation.constraints.FutureOrPresent;
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-bookings.
- */
-
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 public class BookingDto {
 
     private Long id;

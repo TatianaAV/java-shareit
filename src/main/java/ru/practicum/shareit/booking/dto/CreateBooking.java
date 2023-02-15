@@ -6,30 +6,27 @@ import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.Future;
 import javax.validation.constraints.FutureOrPresent;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-bookings.
- */
 @Validated
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 public class CreateBooking {
 
     @FutureOrPresent(message = "Время начала не может быть раньше текущего времени")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Europe/Moscow")
-    @NonNull
+    @NotNull
     private LocalDateTime start;
 
     @Future(message = "Время окончания не может быть в прошлом")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Europe/Moscow")
-    @NonNull
+    @NotNull
     private LocalDateTime end;
 
-    @NonNull
+    @NotNull
     private Long itemId;
 }
 

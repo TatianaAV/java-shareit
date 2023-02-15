@@ -1,8 +1,6 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exeption.NotFoundException;
@@ -15,22 +13,21 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper mapper;
 
-    @Transactional(readOnly = true)
+
     @Override
     public List<UserDto> getUsers() {
         List<User> users = userRepository.findAll();
         return mapper.mapToUserDto(users);
     }
 
-    @Transactional(readOnly = true)
     @Override
     public UserDto getUserById(Integer userId) {
         User user = userRepository.findById(userId)
@@ -46,21 +43,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    @Modifying
     @Override
     public UserDto updateUser(UpdateUserDto user, int userId) {
         User foundUser = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id: " + userId + " does not exist"));
-        if (user == null) {
-            return mapper.toUserDto(foundUser);
-        }
-        if (user.getName() != null) {
+
+        if (user.getName() != null && !user.getName().isBlank()) {
             foundUser.setName(user.getName());
         }
-        if (user.getEmail() != null) {
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
             foundUser.setEmail(user.getEmail());
         }
-        foundUser = userRepository.save(foundUser);
         return mapper.toUserDto(foundUser);
     }
 

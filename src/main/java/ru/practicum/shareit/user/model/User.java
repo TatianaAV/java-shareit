@@ -4,15 +4,10 @@ import lombok.*;
 
 import javax.persistence.*;
 
-/**
- * TODO Sprint add-controllers.
- */
-
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 @Entity
 @Table(name = "users", schema = "public")
 public class User {

@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.StatusBooking;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -53,18 +54,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("SELECT b FROM Booking b WHERE b.booker.id = ?1  AND b.status = ?2")
     List<Booking> findAllByBookerStatus(int booker, StatusBooking status);
 
-    @Query(nativeQuery = true, value = "SELECT * FROM bookings b " +
-            "WHERE b.item_id = ? " +
-            "AND CURRENT_TIMESTAMP > b.finish AND b.status = 'APPROVED' " +
-            "ORDER BY b.start LIMIT 1")
-    Booking findLast(long itemId);
-
-    @Query(nativeQuery = true, value = "SELECT * FROM bookings b  " +
-            " WHERE b.item_id = ?1 " +
-            "AND b.start > CURRENT_TIMESTAMP AND (b.status = 'APPROVED' OR  b.status = 'WAITING') " +
-            "ORDER BY b.start DESC LIMIT 1")
-    Booking findNext(long id);
-
     //OWNER ALL
     @Query(value = "SELECT b FROM Booking b " +
             " WHERE b.item.owner.id = ?1 AND (b.status = 'APPROVED' OR  b.status = 'WAITING') " +
@@ -86,4 +75,23 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     //owner APPROVE, WAITING, REJECTED
     List<Booking> findAllByItemOwnerIdAndStatusEquals(int ownerId, StatusBooking status);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM bookings b " +
+            "WHERE b.item_id = ? " +
+            "AND CURRENT_TIMESTAMP > b.finish AND b.status = 'APPROVED' " +
+            "ORDER BY b.start LIMIT 1")
+    Booking findLast(long itemId);
+
+    @Query(nativeQuery = true, value = "SELECT * FROM bookings b  " +
+            "WHERE b.item_id = ?1 " +
+            "AND b.start > CURRENT_TIMESTAMP AND (b.status = 'APPROVED' OR  b.status = 'WAITING') " +
+            "ORDER BY b.start DESC LIMIT 1")
+    Booking findNext(long id);
+
+    @Query("select distinct b from Booking b where b.item in ?1 and b.end < ?2 and b.status = 'APPROVED' order by b.start")
+    List<Booking> findListLast(List<Item> items, LocalDateTime end);
+
+    @Query("select distinct b from Booking b where b.item in ?1 and b.start > ?2 " +
+            " and (b.status = 'APPROVED' or  b.status = 'WAITING') order by b.start DESC")
+    List<Booking> findListNext(List<Item> itemByOwner, LocalDateTime start);
 }
