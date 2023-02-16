@@ -10,7 +10,12 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exeption.NotFoundException;
 import ru.practicum.shareit.exeption.ValidationException;
-import ru.practicum.shareit.item.dto.*;
+import ru.practicum.shareit.item.dto.commentdto.CommentCreate;
+import ru.practicum.shareit.item.dto.commentdto.CommentDto;
+import ru.practicum.shareit.item.dto.itemdto.CreateItemDto;
+import ru.practicum.shareit.item.dto.itemdto.ItemDto;
+import ru.practicum.shareit.item.dto.itemdto.ItemForOwnerDto;
+import ru.practicum.shareit.item.dto.itemdto.UpdateItemDto;
 import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
@@ -21,7 +26,6 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -73,11 +77,8 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemSearchDto> search(String text, Integer userId) {
-        if (text.isBlank() || text.isEmpty()) {
-            return new ArrayList<>();
-        }
-        return itemMapper.mapItemForSearch(repository.search(text.trim().toUpperCase()));
+    public List<ItemDto> search(String text, Integer userId) {
+        return itemMapper.mapItemDto(repository.search(text.trim().toUpperCase()));
     }
 
     @Transactional
@@ -123,9 +124,11 @@ public class ItemServiceImpl implements ItemService {
         List<ItemForOwnerDto> items = itemMapper.mapItemForBookerDto(itemByOwner);
 
         return items.stream().peek(item -> {
-            item.setComments(commentMapper.mapCommentDto(itemsCommits.get(item.getId())));
-            item.setLastBooking(bookingMapper.toDto(itemsLast.get(item.getId())));
-            item.setNextBooking(bookingMapper.toDto(itemsNext.get(item.getId())));
+            item.setComments(commentMapper.mapCommentDto(itemsCommits.getOrDefault(item.getId(), null)));
+            //а какой в этом смысл на данный момент? тесты сейчас проверяют именно на null
+            // и никакого дефолтного значения вставлять не нужно, если бы нужен был пустой список, то согласна, надо getOfDefault
+            item.setLastBooking(bookingMapper.toDto(itemsLast.getOrDefault(item.getId(), null)));
+            item.setNextBooking(bookingMapper.toDto(itemsNext.getOrDefault(item.getId(), null)));
         }).collect(Collectors.toList());
     }
 

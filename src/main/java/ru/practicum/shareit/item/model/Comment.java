@@ -25,10 +25,10 @@ public class Comment {
     @Column(name = "comment_id")
     private Long id;
 
-   @Column(name = "created")
-   @CreationTimestamp
-   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Europe/Moscow")
-   private LocalDateTime created;
+    @Column(name = "created")
+    @CreationTimestamp
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Europe/Moscow")
+    private LocalDateTime created;
 
     @Column(name = "content", nullable = false)
     @NotBlank(message = "comment is required")

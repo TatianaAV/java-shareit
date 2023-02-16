@@ -1,20 +1,18 @@
-package ru.practicum.shareit.item.dto;
+package ru.practicum.shareit.item.dto.commentdto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Valid
 public class CommentCreate {
 
-    @NotBlank(message = "comment is required")
+    @NotBlank(message = "Комментарий не может быть пустым")
     private String text;
 }

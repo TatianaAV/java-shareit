@@ -2,7 +2,12 @@ package ru.practicum.shareit.item.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.*;
+import ru.practicum.shareit.item.dto.commentdto.CommentCreate;
+import ru.practicum.shareit.item.dto.commentdto.CommentDto;
+import ru.practicum.shareit.item.dto.itemdto.CreateItemDto;
+import ru.practicum.shareit.item.dto.itemdto.ItemDto;
+import ru.practicum.shareit.item.dto.itemdto.ItemForOwnerDto;
+import ru.practicum.shareit.item.dto.itemdto.UpdateItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
@@ -22,7 +27,10 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemSearchDto> search(@RequestHeader(name = requestHeader) Integer userId, @RequestParam String text) {
+    public List<ItemDto> search(@RequestHeader(name = requestHeader) Integer userId, @RequestParam String text) {
+        if (text.isBlank()) {
+            return List.of();
+        }
         return itemService.search(text, userId);
     }
 

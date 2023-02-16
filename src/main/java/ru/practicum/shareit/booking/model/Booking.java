@@ -46,20 +46,6 @@ public class Booking {
     public void setStatus() {
         if (this.status == null) {
             this.status = StatusBooking.WAITING;
-           // return;
         }
-   /*     if (this.status.equals(StatusBooking.APPROVED)) {
-            if (this.end != null && this.end.isBefore(LocalDateTime.now())) {
-                this.status = StatusBooking.PAST;
-            }
-            if (this.start != null && this.start.isAfter(LocalDateTime.now())) {
-                this.status = StatusBooking.FUTURE;
-            } else {
-                if (this.start != null && this.start.isBefore(LocalDateTime.now())
-                        && this.end.isAfter(LocalDateTime.now())) {
-                    this.status = StatusBooking.CURRENT;
-                }
-            }
-        }*/
     }
 }

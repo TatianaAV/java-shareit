@@ -1,15 +1,13 @@
-package ru.practicum.shareit.item.dto;
+package ru.practicum.shareit.item.dto.itemdto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-@Valid
 @Setter
 @Getter
 @AllArgsConstructor

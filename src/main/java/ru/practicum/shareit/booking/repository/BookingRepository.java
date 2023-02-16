@@ -78,20 +78,21 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query(nativeQuery = true, value = "SELECT * FROM bookings b " +
             "WHERE b.item_id = ? " +
-            "AND CURRENT_TIMESTAMP > b.finish AND b.status = 'APPROVED' " +
-            "ORDER BY b.start LIMIT 1")
+            "AND CURRENT_TIMESTAMP >= b.START AND b.status = 'APPROVED' " +
+            "ORDER BY b.START DESC LIMIT 1")
     Booking findLast(long itemId);
 
     @Query(nativeQuery = true, value = "SELECT * FROM bookings b  " +
             "WHERE b.item_id = ?1 " +
-            "AND b.start > CURRENT_TIMESTAMP AND (b.status = 'APPROVED' OR  b.status = 'WAITING') " +
-            "ORDER BY b.start DESC LIMIT 1")
+            "AND b.start > CURRENT_TIMESTAMP AND b.status = 'APPROVED' " +
+            "ORDER BY b.start LIMIT 1")
     Booking findNext(long id);
 
-    @Query("select distinct b from Booking b where b.item in ?1 and b.end < ?2 and b.status = 'APPROVED' order by b.start")
+    @Query(nativeQuery = true, value = "select distinct * from BOOKINGS b " +
+            "where b.ITEM_ID in (?1) and ?2 >= b.START and b.status = 'APPROVED' order by b.START desc LIMIT 1")
     List<Booking> findListLast(List<Item> items, LocalDateTime end);
 
-    @Query("select distinct b from Booking b where b.item in ?1 and b.start > ?2 " +
-            " and (b.status = 'APPROVED' or  b.status = 'WAITING') order by b.start DESC")
+    @Query(nativeQuery = true, value = "select distinct * from BOOKINGS b " +
+            "where b.ITEM_ID in (?1) and b.START > ?2  and b.STATUS = 'APPROVED' order by b.START LIMIT 1")
     List<Booking> findListNext(List<Item> itemByOwner, LocalDateTime start);
 }

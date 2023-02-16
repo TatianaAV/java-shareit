@@ -4,7 +4,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
-import ru.practicum.shareit.item.dto.*;
+import ru.practicum.shareit.item.dto.commentdto.CommentDto;
+import ru.practicum.shareit.item.dto.itemdto.CreateItemDto;
+import ru.practicum.shareit.item.dto.itemdto.ItemDto;
+import ru.practicum.shareit.item.dto.itemdto.ItemForOwnerDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -29,5 +32,5 @@ public interface ItemMapper {
     @Mapping(target = "id", source = "item.id")
     ItemForOwnerDto toItemForBookerDto(Item item, List<CommentDto> comments);
 
-    List<ItemSearchDto> mapItemForSearch(List<Item> items);
+    List<ItemDto> mapItemDto(List<Item> items);
 }

@@ -72,24 +72,26 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
         if (userId == booking.getItem().getOwner().getId()) {
-            if (approved && booking.getStatus().equals(StatusBooking.APPROVED)) {
-                throw new ValidationException("Бронирование уже было одобрено");
-            }
-            if (approved && booking.getStatus().equals(StatusBooking.WAITING)) {
-                booking.setStatus(StatusBooking.APPROVED);
-            }
-            if (!approved && booking.getStatus().equals(StatusBooking.WAITING)) {
+            if (approved) {
+                if (booking.getStatus() == StatusBooking.WAITING) {
+                    booking.setStatus(StatusBooking.APPROVED);
+                } else {
+                    throw new ValidationException("Бронирование уже было одобрено");
+                }
+            } else if (booking.getStatus() == StatusBooking.WAITING) {
                 booking.setStatus(StatusBooking.REJECTED);
             }
             return mapper.toBookingForUser(booking);
         }
+
         if (userId == booking.getBooker().getId()) {
-            if (!approved && !booking.getStatus().equals(StatusBooking.CURRENT)
-                    && (booking.getStatus().equals(StatusBooking.WAITING)
-                    || booking.getStatus().equals(StatusBooking.APPROVED))) {
-                booking.setStatus(StatusBooking.CANCELLED);
-            }
-            if (approved) {
+            if (!approved) {
+                if (!booking.getStatus().equals(StatusBooking.CURRENT)
+                        && (booking.getStatus().equals(StatusBooking.WAITING)
+                        || booking.getStatus().equals(StatusBooking.APPROVED))) {
+                    booking.setStatus(StatusBooking.CANCELLED);
+                }
+            } else {
                 throw new NotFoundException("Бронирование может быть одобрено только владельцем");
             }
             return mapper.toBookingForUser(booking);
