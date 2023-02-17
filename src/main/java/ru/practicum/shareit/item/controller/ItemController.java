@@ -40,7 +40,15 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemDto create(@RequestHeader(name = requestHeader) int userId, @Valid @RequestBody CreateItemDto item) {
+    public ItemDto (@RequestHeader(name = requestHeader) int userId,
+                       @Valid @RequestBody CreateItemDto item,
+                       @RequestParam(name = "requestId") int requestId) {
+        /*Добавим ещё одну полезную опцию в ваше приложение,
+        чтобы пользователи могли отвечать на запросы друг друга.
+        Для этого при создании вещи должна быть возможность указать id запроса,
+         в ответ на который создаётся нужная вещь.
+Добавьте поле requestId в тело запроса POST /items. Обратите внимание,
+что должна сохраниться возможность добавить вещь и без указания requestId. */
         return itemService.add(userId, item);
     }
 
