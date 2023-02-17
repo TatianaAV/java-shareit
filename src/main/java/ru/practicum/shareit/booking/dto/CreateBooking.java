@@ -5,28 +5,30 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.practicum.shareit.booking.model.StatusBooking;
 
+import javax.validation.constraints.Future;
+import javax.validation.constraints.FutureOrPresent;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+
 
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class BookingDto {
+public class CreateBooking {
 
-    private Long id;
-
+    @FutureOrPresent(message = "Время начала не может быть раньше текущего времени")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Europe/Moscow")
+    @NotNull
     private LocalDateTime start;
 
+    @Future(message = "Время окончания не может быть в прошлом")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Europe/Moscow")
+    @NotNull
     private LocalDateTime end;
 
-    private StatusBooking status;
-
-    private Integer bookerId;
-
+    @NotNull
     private Long itemId;
 }
 

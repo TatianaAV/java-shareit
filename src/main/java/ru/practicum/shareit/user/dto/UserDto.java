@@ -1,24 +1,21 @@
 package ru.practicum.shareit.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.validation.constraints.Email;
-
-
-
 @Getter
 @Setter
-@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
-public class UpdateUserDto {
-
+@AllArgsConstructor
+public class UserDto {
     private int id;
 
     private String name;
 
-    @Email(message = "Email не соответствует формату")
     private  String email;
 }
+

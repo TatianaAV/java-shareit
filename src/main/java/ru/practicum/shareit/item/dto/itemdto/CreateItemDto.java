@@ -1,10 +1,9 @@
-package ru.practicum.shareit.item.dto;
+package ru.practicum.shareit.item.dto.itemdto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.practicum.shareit.user.model.User;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -22,6 +21,4 @@ public class CreateItemDto {
 
     @NotNull(message = "Available is required")
     private Boolean available;
-
-    private User owner;
 }
