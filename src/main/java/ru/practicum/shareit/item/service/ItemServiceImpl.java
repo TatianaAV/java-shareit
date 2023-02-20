@@ -22,6 +22,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static org.apache.logging.log4j.util.Strings.isNotEmpty;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @RequiredArgsConstructor
@@ -46,6 +49,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemMapper itemMapper;
     private final CommentMapper commentMapper;
     private final BookingMapper bookingMapper;
+    private final ItemRequestRepository requestRepository;
 
     @Override
     public ItemForOwnerDto getById(long itemId, int ownerId) {
@@ -69,11 +73,26 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional
     @Override
-    public ItemDto add(int userId, CreateItemDto item) {
-        User owner = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id: " + userId + " does not exist"));
-        Item newItem = itemMapper.createItemDtoToItem(owner, item);
-        return itemMapper.toItemDto(repository.save(newItem));
+    public ItemDto add(CreateItemDto item) {
+        User owner = userRepository.findById(item.getOwnerId())
+                .orElseThrow(() -> new NotFoundException("User with id: " + item.getOwnerId() + " does not exist"));
+
+        Item newItem = new Item();
+
+        if (isNotEmpty(item.getName())) {
+            newItem.setName(item.getName());
+        }
+        if (isNotEmpty(item.getDescription())) {
+            newItem.setDescription(item.getDescription());
+        }
+        if (item.getRequestId() != null) {
+            ItemRequest request = requestRepository.findById(item.getRequestId()).orElseThrow(() -> new ValidationException("Запрос не найден."));
+            newItem.setRequest(request);
+        }
+        newItem.setAvailable(item.getAvailable());
+        newItem.setOwner(owner);
+        Item itemSaved = repository.save(newItem);
+        return itemMapper.toItemDto(itemSaved);
     }
 
     @Override

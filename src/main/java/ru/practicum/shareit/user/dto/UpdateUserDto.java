@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.practicum.shareit.request.dto.GetItemRequest;
 
 import javax.validation.constraints.Email;
 
@@ -21,4 +22,9 @@ public class UpdateUserDto {
 
     @Email(message = "Email не соответствует формату")
     private  String email;
+
+    public static UpdateUserDto of(UpdateUserDto user, int id) {
+         user.setId(id);
+        return user;
+    }
 }

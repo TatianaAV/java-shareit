@@ -29,4 +29,8 @@ public interface UserMapper {
     default boolean isNotEmpty(String value) {
         return value != null && !value.isEmpty();
     }
+    @Condition
+    default boolean isNotEmpty(Integer value) {
+        return value != null;
+    }
 }

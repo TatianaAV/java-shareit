@@ -16,8 +16,6 @@ import java.util.Objects;
 @NoArgsConstructor
 public class CreatUserDto {
 
-        private int id;
-
         @Email(message = "Email не соответствует формату")
         @NotBlank(message = "Email не может быть пустым")
         @Size(max = 50, message = "Email не может быть длиннее 50 символов")

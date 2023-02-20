@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.commentdto.CommentCreate;
 import ru.practicum.shareit.item.dto.commentdto.CommentDto;
@@ -13,6 +14,7 @@ import ru.practicum.shareit.item.service.ItemService;
 import javax.validation.Valid;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/items")
@@ -40,16 +42,16 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemDto (@RequestHeader(name = requestHeader) int userId,
-                       @Valid @RequestBody CreateItemDto item,
-                       @RequestParam(name = "requestId") int requestId) {
+    public ItemDto create(@RequestHeader(name = requestHeader) Integer ownerId,
+                          @Valid @RequestBody CreateItemDto item) {
         /*Добавим ещё одну полезную опцию в ваше приложение,
         чтобы пользователи могли отвечать на запросы друг друга.
         Для этого при создании вещи должна быть возможность указать id запроса,
          в ответ на который создаётся нужная вещь.
 Добавьте поле requestId в тело запроса POST /items. Обратите внимание,
 что должна сохраниться возможность добавить вещь и без указания requestId. */
-        return itemService.add(userId, item);
+        log.info("ownerId {}, item {}, requestId {}", ownerId, item, item.getRequestId());
+        return itemService.add(CreateItemDto.of(ownerId, item));
     }
 
     @PostMapping("/{itemId}/comment")

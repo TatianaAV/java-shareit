@@ -9,19 +9,21 @@ import ru.practicum.shareit.item.dto.itemdto.CreateItemDto;
 import ru.practicum.shareit.item.dto.itemdto.ItemDto;
 import ru.practicum.shareit.item.dto.itemdto.ItemForOwnerDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.mapper.MapperItemRequest;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, BookingMapper.class, CommentMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class, BookingMapper.class, CommentMapper.class, MapperItemRequest.class})
 public interface ItemMapper {
 
-    @Mapping(target = "owner", source = "user")
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "name", source = "dto.name")
-    Item createItemDtoToItem(User user, CreateItemDto dto);
+    Item createItemDtoToItem(User owner, CreateItemDto dto);
 
+    @Mapping(target = "requestId", source = "request.requestId")
     ItemDto toItemDto(Item item);
 
     List<ItemForOwnerDto> mapItemForBookerDto(List<Item> items);

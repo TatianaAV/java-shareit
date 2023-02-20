@@ -1,22 +1,42 @@
 package ru.practicum.shareit.request;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.request.dto.AddItemRequest;
+import ru.practicum.shareit.request.dto.GetItemRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 /**
  * TODO Sprint add-item-requests.
  */
+
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
     private final String requestHeader = "X-Sharer-User-Id";
     private final ItemRequestService itemRequestService;
+
+    @PostMapping
+    public ItemRequestDto create(@RequestHeader(name = requestHeader) int userId,
+                                 @Valid @RequestBody AddItemRequest item) {
+        return itemRequestService.add(AddItemRequest.of(userId, item));
+        /*POST /requests
+— добавить новый запрос вещи.
+ Основная часть запроса — текст запроса,
+  где пользователь описывает,
+  какая именно вещь ему нужна.
+ */
+    }
 
     @GetMapping
     public List<ItemRequestDto> getAll(@RequestHeader(name = requestHeader) int userId) {
@@ -34,8 +54,13 @@ public class ItemRequestController {
         return itemRequestService.getAll(userId);
     }
 
-    @GetMapping("/search")
-    public List<ItemRequestDto> search(@RequestParam(required = false) String text) {
+    @GetMapping("/all")
+    public List<ItemRequestDto> searchRequests(@RequestHeader(name = requestHeader) Integer userId,
+                                               @RequestParam(defaultValue = "DESC") String sort,
+                                               @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                               @Positive @RequestParam(defaultValue = "1") Integer size) {
+        log.info("state {}, sort {}, from {}, size {}", sort, from, size);
+        return itemRequestService.searchRequests(GetItemRequest.of(userId, sort, from, size));
         /*GET /requests/all?from={from}&size={size}
     — получить список запросов, созданных другими пользователями.
     С помощью этого эндпоинта пользователи смогут просматривать существующие запросы,
@@ -45,28 +70,17 @@ public class ItemRequestController {
      Для этого нужно передать два параметра: from — индекс первого элемента,
      начиная с 0, и size — количество элементов для отображения.
      */
-        return itemRequestService.searchRequest(text);
     }
 
     @GetMapping("/{id}")
-    public ItemRequestDto getById(@PathVariable long id) {
+    public ItemRequestDto getById(@RequestHeader(name = requestHeader) Integer userId, @PathVariable Long id) {
        /*GET /requests/{requestId}
 — получить данные об одном конкретном
  запросе вместе с данными об ответах на него в том же формате,
  что и в эндпоинте GET /requests.
  Посмотреть данные об отдельном запросе может любой пользователь.*/
-        return itemRequestService.getById(id);
+        return itemRequestService.getById(userId, id);
     }
 
-    @PostMapping
-    public ItemRequestDto create(@RequestHeader(name = requestHeader) int userId,
-                                 @Valid @RequestBody ItemRequest item) {
-        return itemRequestService.add(userId, item);
-        /*POST /requests
-— добавить новый запрос вещи.
- Основная часть запроса — текст запроса,
-  где пользователь описывает,
-  какая именно вещь ему нужна.
- */
-    }
+
 }
