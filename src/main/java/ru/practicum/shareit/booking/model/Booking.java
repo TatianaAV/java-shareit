@@ -42,10 +42,10 @@ public class Booking {
     @ToString.Exclude
     private Item item;
 
-    @PrePersist
+   /* @PrePersist
     public void setStatus() {
         if (this.status == null) {
             this.status = StatusBooking.WAITING;
         }
-    }
+    }*/
 }

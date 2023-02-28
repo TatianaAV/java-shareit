@@ -1,28 +1,32 @@
 package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
-import org.hibernate.query.Query;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exeption.NotFoundException;
+import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.request.dto.AddItemRequest;
 import ru.practicum.shareit.request.dto.GetItemRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.MapperItemRequest;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+
+@Slf4j
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
@@ -32,15 +36,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final MapperItemRequest mapper;
+    private final ItemMapper itemMapper;
 
-    @Override
-    public List<ItemRequestDto> searchRequests(GetItemRequest req) {
-
-        Pageable pageRequest = PageRequest.of(req.getFrom(), req.getSize(), Sort.Direction.DESC);
-       Page<ItemRequest> request = requestRepository.findAll(pageRequest);
-
-        return mapper.mapToItemDto(request);
-    }
 
     @Transactional
     @Override
@@ -53,18 +50,49 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     }
 
-    @Override
-    public List<ItemRequestDto> getAll(int userId) {
-        final User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден."));
-        return mapper.toMapItemRequestDto(requestRepository.findAllByRequestor(user));
-    }
 
     @Override
     public ItemRequestDto getById(Integer userId, Long requestId) {
-        User requestor = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Зарегестрируйтесь."));
+        User requestor = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Зарегестрируйтесь или войдите в свой аккаунт."));
         ItemRequest request = requestRepository.findById(requestId).orElseThrow(() -> new NotFoundException("Запрос не найден."));
-        List<Item>  items =  itemRepository.findByRequest_RequestId(requestId);
-        ItemRequestDto requestDto = mapper.toItemRequestDto(request, items);
-        return requestDto;
+        List<Item> items = itemRepository.findByRequest_RequestId(requestId);
+        return mapper.toItemRequestDto(request, items);
+    }
+
+    @Override
+    public List<ItemRequestDto> getAll(int userId) {
+        final User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден."));
+        List<ItemRequest> requests = requestRepository.findAllByRequestor(user);
+
+        Map<Long, List<Item>> items = itemRepository
+                .findByRequestInOrderByIdDesc(requests)
+                .stream().collect(groupingBy(item -> item.getRequest().getRequestId(), toList()));
+
+        return mapToItemsRequestsList(requests, items);
+    }
+
+    @Override
+    public List<ItemRequestDto> searchRequests(GetItemRequest req) {
+        final User user = userRepository.findById(req.getUserId()).orElseThrow(() -> new NotFoundException("Пользователь не найден."));
+        PageRequest pageRequest = req.getPageRequest();
+
+        log.info("установлено page {}, size {}", pageRequest.getPageNumber(), pageRequest.getPageSize());
+        Page<ItemRequest> page = requestRepository.findAllByRequestorIsNot(user, pageRequest);
+        List<ItemRequest> requests = mapper.mapToItem(page);
+        Map<Long, List<Item>> items = itemRepository
+                .findByRequestInOrderByIdDesc(requests)
+                .stream().collect(groupingBy(item -> item.getRequest().getRequestId(), toList()));
+
+        return mapToItemsRequestsList(requests, items);
+    }
+
+    private List<ItemRequestDto> mapToItemsRequestsList(List<ItemRequest> requests,
+                                                        Map<Long, List<Item>> items) {
+
+        List<ItemRequestDto> requestsDto = mapper.toMapItemRequestDto(requests);
+
+        return requestsDto.stream()
+                .peek(request -> request.setItems(itemMapper.mapItemDto(items.getOrDefault(request.getId(),
+                        List.of())))).collect(Collectors.toList());
     }
 }

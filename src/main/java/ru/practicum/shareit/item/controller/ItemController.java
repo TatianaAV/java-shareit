@@ -29,10 +29,13 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> search(@RequestHeader(name = requestHeader) Integer userId, @RequestParam String text) {
+    public List<ItemDto> search(@RequestHeader(name = requestHeader) Integer userId,
+                                @RequestParam String text) {
+        log.info("text {}", text);
         if (text.isBlank()) {
             return List.of();
         }
+        log.info("return search {}, userId {}", text, userId);
         return itemService.search(text, userId);
     }
 
@@ -44,12 +47,6 @@ public class ItemController {
     @PostMapping
     public ItemDto create(@RequestHeader(name = requestHeader) Integer ownerId,
                           @Valid @RequestBody CreateItemDto item) {
-        /*Добавим ещё одну полезную опцию в ваше приложение,
-        чтобы пользователи могли отвечать на запросы друг друга.
-        Для этого при создании вещи должна быть возможность указать id запроса,
-         в ответ на который создаётся нужная вещь.
-Добавьте поле requestId в тело запроса POST /items. Обратите внимание,
-что должна сохраниться возможность добавить вещь и без указания requestId. */
         log.info("ownerId {}, item {}, requestId {}", ownerId, item, item.getRequestId());
         return itemService.add(CreateItemDto.of(ownerId, item));
     }
@@ -64,10 +61,5 @@ public class ItemController {
     public ItemDto update(@RequestHeader(name = requestHeader) int userId, @PathVariable("id") long itemId,
                           @RequestBody UpdateItemDto item) {
         return itemService.update(itemId, userId, item);
-    }
-
-    @DeleteMapping("/{id}")
-    public void delete(@RequestHeader(name = requestHeader) int userId, @PathVariable long id) {
-        itemService.delete(id, userId);
     }
 }

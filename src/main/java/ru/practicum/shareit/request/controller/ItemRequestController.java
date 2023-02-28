@@ -1,8 +1,10 @@
-package ru.practicum.shareit.request;
+package ru.practicum.shareit.request.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.AddItemRequest;
 import ru.practicum.shareit.request.dto.GetItemRequest;
@@ -14,20 +16,17 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
-/**
- * TODO Sprint add-item-requests.
- */
-
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
     private final String requestHeader = "X-Sharer-User-Id";
     private final ItemRequestService itemRequestService;
 
     @PostMapping
-    public ItemRequestDto create(@RequestHeader(name = requestHeader) int userId,
+    public ItemRequestDto create(@RequestHeader(name = requestHeader) Integer userId,
                                  @Valid @RequestBody AddItemRequest item) {
         return itemRequestService.add(AddItemRequest.of(userId, item));
         /*POST /requests
@@ -56,11 +55,10 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public List<ItemRequestDto> searchRequests(@RequestHeader(name = requestHeader) Integer userId,
-                                               @RequestParam(defaultValue = "DESC") String sort,
                                                @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
-                                               @Positive @RequestParam(defaultValue = "1") Integer size) {
-        log.info("state {}, sort {}, from {}, size {}", sort, from, size);
-        return itemRequestService.searchRequests(GetItemRequest.of(userId, sort, from, size));
+                                               @Positive @RequestParam(defaultValue = "10") Integer size) {
+
+        return itemRequestService.searchRequests(GetItemRequest.of(userId, PageRequest.of(from / size, size, Sort.by("created").descending())));
         /*GET /requests/all?from={from}&size={size}
     — получить список запросов, созданных другими пользователями.
     С помощью этого эндпоинта пользователи смогут просматривать существующие запросы,

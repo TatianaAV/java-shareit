@@ -1,4 +1,4 @@
-package ru.practicum.shareit.request.dto;
+package ru.practicum.shareit.booking.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,17 +13,21 @@ import javax.validation.Valid;
 @AllArgsConstructor
 @NoArgsConstructor
 @Valid
-public class GetItemRequest {
+public class GetBookings {
     private Integer userId;
 
     PageRequest pageRequest;
 
-    public static GetItemRequest of(Integer userId,
-                                    PageRequest pageRequest) {
-        GetItemRequest request = new GetItemRequest();
+    private String stateParam;
+
+    public static GetBookings of(Integer userId,
+                                 PageRequest pageRequest, String stateParam) {
+        GetBookings request = new GetBookings();
 
         request.setUserId(userId);
+        request.setStateParam(stateParam);
         request.setPageRequest(pageRequest);
+
         return request;
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpServerErrorException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolationException;
 import java.sql.SQLException;
 
 import static org.springframework.http.HttpStatus.*;
@@ -15,9 +16,9 @@ import static org.springframework.http.HttpStatus.*;
 @RestControllerAdvice
 public class ErrorHandler {
 
-    @ExceptionHandler
+    @ExceptionHandler({ConstraintViolationException.class, ValidationException.class})
     @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse handlerValidationException(HttpServletRequest request, final ValidationException e) {
+    public ErrorResponse handlerValidationException(HttpServletRequest request, final Exception e) {
         log.error("Requested URL= {}", request.getRequestURL());
         log.error("BAD_REQUEST {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
@@ -30,14 +31,14 @@ public class ErrorHandler {
         log.error("BAD_REQUEST {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
-
+/*
     @ExceptionHandler
     @ResponseStatus(CONFLICT)
     public ErrorResponse handleFilmNotFoundException(HttpServletRequest request, final AlreadyExistException e) {
         log.error("Requested URL= {}", request.getRequestURL());
         log.error("BAD_REQUEST {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
-    }
+    }*/
 
     @ExceptionHandler
     @ResponseStatus(INTERNAL_SERVER_ERROR)

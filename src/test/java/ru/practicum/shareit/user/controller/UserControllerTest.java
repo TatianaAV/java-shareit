@@ -1,19 +1,16 @@
 package ru.practicum.shareit.user.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import ru.practicum.shareit.exeption.ValidationException;
 import ru.practicum.shareit.user.dto.CreatUserDto;
 import ru.practicum.shareit.user.dto.UpdateUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -22,14 +19,12 @@ import ru.practicum.shareit.user.service.UserService;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(controllers = UserController.class)
@@ -69,10 +64,6 @@ class UserControllerTest {
                 "update.doe@mail.com");
     }
 
-    @AfterEach
-    void tearDown() {
-    }
-
     @Test
     void createUser() throws Exception {
         when(userService.createUser(any(CreatUserDto.class)))
@@ -87,19 +78,75 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.id", is(user2.getId()), Integer.class))
                 .andExpect(jsonPath("$.name", is(user2.getName())))
                 .andExpect(jsonPath("$.email", is(user2.getEmail())));
+
+        verify(userService, times(1))
+                .createUser(any(CreatUserDto.class));
+    }
+
+    @Test
+    void createUserEmailException() throws Exception {
+        when(userService.createUser(any(CreatUserDto.class)))
+                .thenThrow(new ValidationException("Email не может быть пустым"));
+
+        mvc.perform(post("/users")
+                        .content(mapper.writeValueAsString(new CreatUserDto(" ", "Created empty email")))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        verify(userService, times(0))
+                .createUser(any(CreatUserDto.class));
+    }
+
+    @Test
+    void createUserFailNoEmail() throws Exception {
+        when(userService.createUser(any(CreatUserDto.class)))
+                .thenThrow(new ValidationException("Email не может быть пустым"));
+
+        mvc.perform(post("/users")
+                        .content(mapper.writeValueAsString(new CreatUserDto(
+                                " ",
+                                "John Doe")))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        verify(userService, times(0))
+                .createUser(any(CreatUserDto.class));
+    }
+
+    @Test
+    void createUserInvalidEmail() throws Exception {
+        when(userService.createUser(any(CreatUserDto.class)))
+                .thenThrow(new ValidationException("Email не соответствует формату"));
+
+        mvc.perform(post("/users")
+                        .content(mapper.writeValueAsString(new CreatUserDto(
+                                "@mail.ru",
+                                "John Doe")))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        verify(userService, times(0))
+                .createUser(any(CreatUserDto.class));
     }
 
     @Test
     void getUsers() throws Exception {
+
         when(userService.getUsers())
-                .thenReturn(List.of(user2));
+                .thenReturn(List.of());
 
         mvc.perform(get("/users"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id", is(user2.getId()), Integer.class))
-                .andExpect(jsonPath("$[0].name", is(user2.getName())))
-                .andExpect(jsonPath("$[0].email", is(user2.getEmail())));
+                .andExpect(content().json("[]"));
+
+        verify(userService, times(1))
+                .getUsers();
     }
 
     @Test
@@ -112,6 +159,9 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.id", is(user2.getId()), Integer.class))
                 .andExpect(jsonPath("$.name", is(user2.getName())))
                 .andExpect(jsonPath("$.email", is(user2.getEmail())));
+
+        verify(userService, times(1))
+                .getUserById(anyInt());
     }
 
 
@@ -129,11 +179,19 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.id", is(user2.getId()), Integer.class))
                 .andExpect(jsonPath("$.name", is(updateUserDto.getName())))
                 .andExpect(jsonPath("$.email", is(updateUserDto.getEmail())));
+
+        verify(userService, times(1))
+                .updateUser(any(UpdateUserDto.class), anyInt());
     }
 
     @Test
-    void deleteUserById() {
+    void deleteUserById() throws Exception {
 
+        mvc.perform(delete("/users/{id}", 1))
+                .andExpect(status().isOk());
+
+
+        verify(userService, times(1))
+                .deleteUserById(anyInt());
     }
-
 }

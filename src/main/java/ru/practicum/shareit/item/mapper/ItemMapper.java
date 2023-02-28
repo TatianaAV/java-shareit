@@ -1,27 +1,23 @@
 package ru.practicum.shareit.item.mapper;
 
+import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.item.dto.commentdto.CommentDto;
-import ru.practicum.shareit.item.dto.itemdto.CreateItemDto;
 import ru.practicum.shareit.item.dto.itemdto.ItemDto;
 import ru.practicum.shareit.item.dto.itemdto.ItemForOwnerDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.mapper.MapperItemRequest;
 import ru.practicum.shareit.user.mapper.UserMapper;
-import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, BookingMapper.class, CommentMapper.class, MapperItemRequest.class})
+@Mapper(componentModel = "spring",
+        uses = {UserMapper.class, BookingMapper.class, CommentMapper.class, MapperItemRequest.class},
+        injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface ItemMapper {
-
-
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "name", source = "dto.name")
-    Item createItemDtoToItem(User owner, CreateItemDto dto);
 
     @Mapping(target = "requestId", source = "request.requestId")
     ItemDto toItemDto(Item item);

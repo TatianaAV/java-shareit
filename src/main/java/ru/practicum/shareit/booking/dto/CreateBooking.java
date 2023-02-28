@@ -28,7 +28,7 @@ public class CreateBooking {
     @NotNull
     private LocalDateTime end;
 
-    @NotNull
+    @NotNull(message = "Необходимо выбрать вещь")
     private Long itemId;
 }
 

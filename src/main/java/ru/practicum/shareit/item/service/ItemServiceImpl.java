@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +23,7 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -34,9 +35,9 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static org.apache.logging.log4j.util.Strings.isNotEmpty;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
@@ -46,10 +47,10 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository repository;
     private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;
+    private final ItemRequestRepository requestRepository;
     private final ItemMapper itemMapper;
     private final CommentMapper commentMapper;
     private final BookingMapper bookingMapper;
-    private final ItemRequestRepository requestRepository;
 
     @Override
     public ItemForOwnerDto getById(long itemId, int ownerId) {
@@ -67,26 +68,18 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional
     @Override
-    public void delete(long id, int userId) {
-        repository.deleteItemByIdAndOwnerId(id, userId);
-    }
-
-    @Transactional
-    @Override
     public ItemDto add(CreateItemDto item) {
         User owner = userRepository.findById(item.getOwnerId())
                 .orElseThrow(() -> new NotFoundException("User with id: " + item.getOwnerId() + " does not exist"));
 
         Item newItem = new Item();
 
-        if (isNotEmpty(item.getName())) {
-            newItem.setName(item.getName());
-        }
-        if (isNotEmpty(item.getDescription())) {
-            newItem.setDescription(item.getDescription());
-        }
+        newItem.setName(item.getName());
+        newItem.setDescription(item.getDescription());
         if (item.getRequestId() != null) {
-            ItemRequest request = requestRepository.findById(item.getRequestId()).orElseThrow(() -> new ValidationException("Запрос не найден."));
+            ItemRequest request = requestRepository
+                    .findById(item.getRequestId())
+                    .orElseThrow(() -> new ValidationException("Запрос не найден."));
             newItem.setRequest(request);
         }
         newItem.setAvailable(item.getAvailable());
@@ -103,16 +96,12 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public CommentDto addComment(int bookerId, CommentCreate comment, long itemId) {
+        log.info("LocalDateTime.now() {}", LocalDateTime.now());
         Booking booking = bookingRepository
                 .findBookingByBookerAndItem(bookerId, itemId, LocalDateTime.now())
-                .orElseThrow(() -> new ValidationException("Booking with itemId : " + itemId +
-                        ", bookerId " + bookerId));
-        if (booking.getBooker().getId() == bookerId) {
-            Comment commentCreate = commentMapper.toComment(booking.getBooker(), booking.getItem(), comment);
-            return commentMapper.toCommentDto(commentRepository.save(commentCreate));
-        } else {
-            throw new ValidationException("Вы не можете оставить комментарий, у вас не было бронирований");
-        }
+                .orElseThrow(() -> new ValidationException("Вы не можете оставить комментарий, у вас не было бронирований"));
+        Comment commentCreate = commentMapper.toComment(booking.getBooker(), booking.getItem(), comment);
+        return commentMapper.toCommentDto(commentRepository.save(commentCreate));
     }
 
     @Override
@@ -131,8 +120,7 @@ public class ItemServiceImpl implements ItemService {
                 .findByItemIn(itemByOwner, Sort.by(DESC, "created"))
                 .stream().collect(groupingBy(comment -> comment.getItem().getId(), toList()));
 
-        List<ItemForOwnerDto> itemForOwnerDto = mapItemForOwnerDto(itemByOwner, itemsLast, itemsNext, itemsCommits);
-        return itemForOwnerDto;
+        return mapItemForOwnerDto(itemByOwner, itemsLast, itemsNext, itemsCommits);
     }
 
     private List<ItemForOwnerDto> mapItemForOwnerDto(List<Item> itemByOwner,

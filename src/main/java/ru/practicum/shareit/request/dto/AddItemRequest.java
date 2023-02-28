@@ -1,10 +1,12 @@
 package ru.practicum.shareit.request.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
-import javax.persistence.Column;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
@@ -27,6 +29,7 @@ public class AddItemRequest {
 
         request.setDescription(item.getDescription());
         request.setRequestorId(userId);
-request.setCreated(LocalDateTime.now());
-        return request;}
+        request.setCreated(LocalDateTime.now());
+        return request;
+    }
 }

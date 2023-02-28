@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.mapper;
 
+import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.practicum.shareit.item.dto.commentdto.CommentCreate;
@@ -11,7 +12,7 @@ import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {ItemMapper.class, UserMapper.class})
+@Mapper(componentModel = "spring", uses = {ItemMapper.class, UserMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface CommentMapper {
 
     @Mapping(target = "id", ignore = true)

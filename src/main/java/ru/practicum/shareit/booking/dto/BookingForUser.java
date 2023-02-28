@@ -32,7 +32,7 @@ public class BookingForUser {
 
     @Data
     public static class Booker {
-        private final long id;
+        private final int id;
         private final String name;
     }
 
