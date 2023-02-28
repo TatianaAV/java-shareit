@@ -176,7 +176,7 @@ class BookingServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user2));
         when(itemRepository.findById(item1ByOwner1.getId())).thenReturn(Optional.of(item1ByOwner1));
 
-        assertThrows(ValidationException.class, () -> bookingService.add(userId, new CreateBooking(LocalDateTime.now(), LocalDateTime.now(), 1L)));
+        assertThrows(ValidationException.class, () -> bookingService.add(userId, new CreateBooking( LocalDateTime.of(2022, 3, 17, 19, 55, 0),  LocalDateTime.of(2022, 3, 17, 19, 55, 0), 1L)));
 
         verify(bookingService, times(1))
                 .add(anyInt(), any(CreateBooking.class));
