@@ -10,7 +10,7 @@ import ru.practicum.shareit.exeption.NotFoundException;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.dto.AddItemRequest;
+import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.GetItemRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.MapperItemRequest;
@@ -41,7 +41,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Transactional
     @Override
-    public ItemRequestDto add(AddItemRequest request) {
+    public ItemRequestDto add(ItemRequestCreateDto request) {
         final User requestor = userRepository
                 .findById(request.getRequestorId()).orElseThrow(() -> new NotFoundException("Для запроса зарегистрируйтесь"));
         ItemRequest requestNew = mapper.toItemRequest(requestor, request);
@@ -53,7 +53,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public ItemRequestDto getById(Integer userId, Long requestId) {
-        User requestor = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Зарегестрируйтесь или войдите в свой аккаунт."));
+        User requestor = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Зарегистрируйтесь или войдите в свой аккаунт."));
         ItemRequest request = requestRepository.findById(requestId).orElseThrow(() -> new NotFoundException("Запрос не найден."));
         List<Item> items = itemRepository.findByRequest_RequestId(requestId);
         return mapper.toItemRequestDto(request, items);
@@ -72,9 +72,9 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
-    public List<ItemRequestDto> searchRequests(GetItemRequest req) {
-        final User user = userRepository.findById(req.getUserId()).orElseThrow(() -> new NotFoundException("Пользователь не найден."));
-        PageRequest pageRequest = req.getPageRequest();
+    public List<ItemRequestDto> searchRequests(GetItemRequest getItemRequest) {
+        final User user = userRepository.findById(getItemRequest.getUserId()).orElseThrow(() -> new NotFoundException("Пользователь не найден."));
+        PageRequest pageRequest = getItemRequest.getPageRequest();
 
         log.info("установлено page {}, size {}", pageRequest.getPageNumber(), pageRequest.getPageSize());
         Page<ItemRequest> page = requestRepository.findAllByRequestorIsNot(user, pageRequest);
@@ -86,13 +86,13 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return mapToItemsRequestsList(requests, items);
     }
 
-    private List<ItemRequestDto> mapToItemsRequestsList(List<ItemRequest> requests,
-                                                        Map<Long, List<Item>> items) {
-
-        List<ItemRequestDto> requestsDto = mapper.toMapItemRequestDto(requests);
-
+    private List<ItemRequestDto> mapToItemsRequestsList(List<ItemRequest> itemRequests, Map<Long, List<Item>> items) {
+        List<ItemRequestDto> requestsDto = mapper.toMapItemRequestDto(itemRequests);
         return requestsDto.stream()
-                .peek(request -> request.setItems(itemMapper.mapItemDto(items.getOrDefault(request.getId(),
-                        List.of())))).collect(Collectors.toList());
+                .map(request -> {
+                    request.setItems(itemMapper.mapItemDto(items.getOrDefault(request.getId(), List.of())));
+                    return new ItemRequestDto(request.getId(), request.getDescription(), request.getCreated(), request.getItems());
+                })
+                .collect(Collectors.toList());
     }
 }

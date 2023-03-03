@@ -12,7 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.exeption.ValidationException;
 import ru.practicum.shareit.item.dto.itemdto.ItemDto;
-import ru.practicum.shareit.request.dto.AddItemRequest;
+import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.GetItemRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
@@ -44,13 +44,13 @@ class ItemRequestControllerTest {
     @Autowired
     private MockMvc mvc;
 
-    private AddItemRequest newItemRequest;
+    private ItemRequestCreateDto newItemRequest;
     private ItemRequestDto itemRequestDto;
 
     @BeforeEach
     void setUp() {
 
-        newItemRequest = new AddItemRequest("Нужна мощная дрель по дереву просверлить дубовую столешницу", null, null);
+        newItemRequest = new ItemRequestCreateDto("Нужна мощная дрель по дереву просверлить дубовую столешницу", null, null);
 
         itemRequestDto = new ItemRequestDto(
                 1L,
@@ -64,7 +64,7 @@ class ItemRequestControllerTest {
     @Test
     void create() throws Exception {
 
-        when(itemRequestService.add(any(AddItemRequest.class)))
+        when(itemRequestService.add(any(ItemRequestCreateDto.class)))
                 .thenReturn(itemRequestDto);
 
         mvc.perform(post("/requests")
@@ -82,7 +82,7 @@ class ItemRequestControllerTest {
 
 
         verify(itemRequestService, times(1))
-                .add(any(AddItemRequest.class));
+                .add(any(ItemRequestCreateDto.class));
     }
 
     @Test

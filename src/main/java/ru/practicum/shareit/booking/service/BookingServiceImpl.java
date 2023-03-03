@@ -7,7 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingForUser;
-import ru.practicum.shareit.booking.dto.CreateBooking;
+import ru.practicum.shareit.booking.dto.CreateBookingDto;
 import ru.practicum.shareit.booking.dto.GetBookings;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
@@ -44,7 +44,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional
     @Override
-    public BookingForUser add(int bookerId, CreateBooking booking) {
+    public BookingForUser add(int bookerId, CreateBookingDto booking) {
         final User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new NotFoundException("User with id: " + bookerId + " does not exist"));
         final Item item = itemRepository.findById(booking.getItemId()).orElseThrow(() -> new NotFoundException("вещь не найдена"));
@@ -86,11 +86,9 @@ public class BookingServiceImpl implements BookingService {
         }
 
         if (userId == booking.getBooker().getId()) {
-            if (!approved) {
-                if ((booking.getStatus().equals(StatusBooking.WAITING)
-                        || booking.getStatus().equals(StatusBooking.APPROVED))) {
+            if (!approved && (booking.getStatus().equals(StatusBooking.WAITING)
+                    || booking.getStatus().equals(StatusBooking.APPROVED))) {
                     booking.setStatus(StatusBooking.CANCELLED);
-                }
             } else {
                 throw new NotFoundException("Бронирование может быть одобрено только владельцем");
             }

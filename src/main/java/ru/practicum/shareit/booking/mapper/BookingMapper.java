@@ -6,7 +6,7 @@ import org.mapstruct.Mapping;
 import org.springframework.data.domain.Page;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingForUser;
-import ru.practicum.shareit.booking.dto.CreateBooking;
+import ru.practicum.shareit.booking.dto.CreateBookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
@@ -25,7 +25,7 @@ public interface BookingMapper {
     BookingDto toDto(Booking booking);
 
     @Mapping(target = "id", ignore = true)
-    Booking toBooking(CreateBooking booking, User booker, Item item);
+    Booking toBooking(CreateBookingDto booking, User booker, Item item);
 
     List<BookingForUser> toMapForUsers(List<Booking> bookings);
 

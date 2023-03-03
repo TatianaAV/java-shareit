@@ -6,7 +6,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.booking.dto.BookingForUser;
-import ru.practicum.shareit.booking.dto.CreateBooking;
+import ru.practicum.shareit.booking.dto.CreateBookingDto;
 import ru.practicum.shareit.booking.dto.GetBookings;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.mapper.BookingMapperImpl;
@@ -49,7 +49,7 @@ class BookingServiceTest {
     Booking bookingFuture;
     Booking bookingPast;
     User user;
-    CreateBooking createBooking;
+    CreateBookingDto createBookingDto;
     User user1;
     User user2;
     Item item1ByOwner1;
@@ -92,7 +92,7 @@ class BookingServiceTest {
                 new Booking(3L, LocalDateTime.now().plusMinutes(5), LocalDateTime.now().plusMinutes(10), StatusBooking.APPROVED, user2, item1ByOwner1);
         bookingPast =
                 new Booking(4L, LocalDateTime.now().minusDays(1), LocalDateTime.now().minusHours(5), StatusBooking.APPROVED, user2, item1ByOwner1);
-        createBooking = new CreateBooking(LocalDateTime.now().plusDays(1), LocalDateTime.MAX, 1L);
+        createBookingDto = new CreateBookingDto(LocalDateTime.now().plusDays(1), LocalDateTime.MAX, 1L);
     }
 
     @Test
@@ -104,7 +104,7 @@ class BookingServiceTest {
         when(itemRepository.findById(item1ByOwner1.getId())).thenReturn(Optional.of(item1ByOwner1));
         when(bookingRepository.save(any(Booking.class))).thenReturn(bookingBooker2Item1);
 
-        BookingForUser actualBooking = bookingService.add(userId, createBooking);
+        BookingForUser actualBooking = bookingService.add(userId, createBookingDto);
 
         assertEquals(bookingBooker2Item1.getId(), actualBooking.getId());
         assertEquals(bookingBooker2Item1.getItem().getId(), actualBooking.getItem().getId());
@@ -112,7 +112,7 @@ class BookingServiceTest {
         assertEquals(bookingBooker2Item1.getStatus(), actualBooking.getStatus());
 
         verify(bookingService, times(1))
-                .add(anyInt(), any(CreateBooking.class));
+                .add(anyInt(), any(CreateBookingDto.class));
 
         verify(bookingRepository, times(1))
                 .save(any(Booking.class));
@@ -125,10 +125,10 @@ class BookingServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> bookingService.add(userId, createBooking));
+        assertThrows(NotFoundException.class, () -> bookingService.add(userId, createBookingDto));
 
         verify(bookingService, times(1))
-                .add(anyInt(), any(CreateBooking.class));
+                .add(anyInt(), any(CreateBookingDto.class));
 
         verify(bookingRepository, times(0))
                 .save(any(Booking.class));
@@ -142,10 +142,10 @@ class BookingServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user2));
         when(itemRepository.findById(item1ByOwner1.getId())).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> bookingService.add(userId, createBooking));
+        assertThrows(NotFoundException.class, () -> bookingService.add(userId, createBookingDto));
 
         verify(bookingService, times(1))
-                .add(anyInt(), any(CreateBooking.class));
+                .add(anyInt(), any(CreateBookingDto.class));
 
         verify(bookingRepository, times(0))
                 .save(any(Booking.class));
@@ -159,10 +159,10 @@ class BookingServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user1));
         when(itemRepository.findById(item1ByOwner1.getId())).thenReturn(Optional.of(item1ByOwner1));
 
-        assertThrows(NotFoundException.class, () -> bookingService.add(userId, new CreateBooking()));
+        assertThrows(NotFoundException.class, () -> bookingService.add(userId, new CreateBookingDto()));
 
         verify(bookingService, times(1))
-                .add(anyInt(), any(CreateBooking.class));
+                .add(anyInt(), any(CreateBookingDto.class));
 
         verify(bookingRepository, times(0))
                 .save(any(Booking.class));
@@ -176,10 +176,10 @@ class BookingServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user2));
         when(itemRepository.findById(item1ByOwner1.getId())).thenReturn(Optional.of(item1ByOwner1));
 
-        assertThrows(ValidationException.class, () -> bookingService.add(userId, new CreateBooking(LocalDateTime.of(2022, 3, 17, 19, 55, 0), LocalDateTime.of(2022, 3, 17, 19, 55, 0), 1L)));
+        assertThrows(ValidationException.class, () -> bookingService.add(userId, new CreateBookingDto(LocalDateTime.of(2022, 3, 17, 19, 55, 0), LocalDateTime.of(2022, 3, 17, 19, 55, 0), 1L)));
 
         verify(bookingService, times(1))
-                .add(anyInt(), any(CreateBooking.class));
+                .add(anyInt(), any(CreateBookingDto.class));
 
         verify(bookingRepository, times(0))
                 .save(any(Booking.class));
@@ -193,10 +193,10 @@ class BookingServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user2));
         when(itemRepository.findById(item1ByOwner1.getId())).thenReturn(Optional.of(item1ByOwner1));
 
-        assertThrows(ValidationException.class, () -> bookingService.add(userId, new CreateBooking(LocalDateTime.now().plusDays(1), LocalDateTime.now(), 1L)));
+        assertThrows(ValidationException.class, () -> bookingService.add(userId, new CreateBookingDto(LocalDateTime.now().plusDays(1), LocalDateTime.now(), 1L)));
 
         verify(bookingService, times(1))
-                .add(anyInt(), any(CreateBooking.class));
+                .add(anyInt(), any(CreateBookingDto.class));
 
         verify(bookingRepository, times(0))
                 .save(any(Booking.class));
@@ -211,10 +211,10 @@ class BookingServiceTest {
         item1ByOwner1.setAvailable(false);
         when(itemRepository.findById(item1ByOwner1.getId())).thenReturn(Optional.of(item1ByOwner1));
 
-        assertThrows(ValidationException.class, () -> bookingService.add(userId, new CreateBooking(LocalDateTime.now(), LocalDateTime.now().plusDays(1), 1L)));
+        assertThrows(ValidationException.class, () -> bookingService.add(userId, new CreateBookingDto(LocalDateTime.now(), LocalDateTime.now().plusDays(1), 1L)));
 
         verify(bookingService, times(1))
-                .add(anyInt(), any(CreateBooking.class));
+                .add(anyInt(), any(CreateBookingDto.class));
 
         verify(bookingRepository, times(0))
                 .save(any(Booking.class));
@@ -229,10 +229,10 @@ class BookingServiceTest {
 
         when(itemRepository.findById(item1ByOwner1.getId())).thenReturn(Optional.of(item1ByOwner1));
 
-        assertThrows(NotFoundException.class, () -> bookingService.add(userId, new CreateBooking(LocalDateTime.now(), LocalDateTime.now().plusDays(1), 1L)));
+        assertThrows(NotFoundException.class, () -> bookingService.add(userId, new CreateBookingDto(LocalDateTime.now(), LocalDateTime.now().plusDays(1), 1L)));
 
         verify(bookingService, times(1))
-                .add(anyInt(), any(CreateBooking.class));
+                .add(anyInt(), any(CreateBookingDto.class));
 
         verify(bookingRepository, times(0))
                 .save(any(Booking.class));

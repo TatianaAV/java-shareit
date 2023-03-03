@@ -31,14 +31,6 @@ public class ErrorHandler {
         log.error("BAD_REQUEST {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
-/*
-    @ExceptionHandler
-    @ResponseStatus(CONFLICT)
-    public ErrorResponse handleFilmNotFoundException(HttpServletRequest request, final AlreadyExistException e) {
-        log.error("Requested URL= {}", request.getRequestURL());
-        log.error("BAD_REQUEST {}", e.getMessage());
-        return new ErrorResponse(e.getMessage());
-    }*/
 
     @ExceptionHandler
     @ResponseStatus(INTERNAL_SERVER_ERROR)

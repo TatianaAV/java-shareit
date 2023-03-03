@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateBooking {
+public class CreateBookingDto {
 
     @FutureOrPresent(message = "Время начала не может быть раньше текущего времени")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Europe/Moscow")

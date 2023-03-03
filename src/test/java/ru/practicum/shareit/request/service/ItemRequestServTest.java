@@ -12,7 +12,7 @@ import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.mapper.ItemMapperImpl;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.dto.AddItemRequest;
+import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.GetItemRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.MapperItemRequest;
@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-class ItemRequestServiceTest {
+class ItemRequestServTest {
 
     ItemRequestRepository itemRequestRepository;
     ItemRepository itemRepository;
@@ -79,14 +79,14 @@ class ItemRequestServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user1));
         when(itemRequestRepository.save(any(ItemRequest.class))).thenReturn(itemRequest);
 
-        ItemRequestDto actualItemRequest = itemRequestService.add(new AddItemRequest("дрель по дереву", userId, LocalDateTime.now()));
+        ItemRequestDto actualItemRequest = itemRequestService.add(new ItemRequestCreateDto("дрель по дереву", userId, LocalDateTime.now()));
 
         assertEquals(itemRequest.getRequestId(), actualItemRequest.getId());
         assertEquals(itemRequest.getDescription(), actualItemRequest.getDescription());
         assertEquals(itemRequest.getRequestId(), actualItemRequest.getId());
 
         verify(itemRequestService, times(1))
-                .add(any(AddItemRequest.class));
+                .add(any(ItemRequestCreateDto.class));
 
         verify(itemRequestRepository, times(1))
                 .save(any(ItemRequest.class));
@@ -99,10 +99,10 @@ class ItemRequestServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> itemRequestService.add((new AddItemRequest("дрель по дереву", userId, LocalDateTime.now()))));
+        assertThrows(NotFoundException.class, () -> itemRequestService.add((new ItemRequestCreateDto("дрель по дереву", userId, LocalDateTime.now()))));
 
         verify(itemRequestService, times(1))
-                .add(any(AddItemRequest.class));
+                .add(any(ItemRequestCreateDto.class));
 
         verify(itemRequestRepository, times(0))
                 .save(any(ItemRequest.class));

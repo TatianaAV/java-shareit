@@ -8,7 +8,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 @Valid
 @Data
@@ -24,7 +23,7 @@ public class CreatUserDto {
     @Size(max = 50, message = "Имя не может быть длиннее 50 символов")
     @NotBlank(message = "Имя отсутствует")
     private String name;
-
+/*
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -36,6 +35,6 @@ public class CreatUserDto {
     @Override
     public int hashCode() {
         return Objects.hash(email);
-    }
+    }*/
 }
 

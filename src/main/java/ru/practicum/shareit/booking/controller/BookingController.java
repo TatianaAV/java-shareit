@@ -7,7 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingForUser;
-import ru.practicum.shareit.booking.dto.CreateBooking;
+import ru.practicum.shareit.booking.dto.CreateBookingDto;
 import ru.practicum.shareit.booking.dto.GetBookings;
 import ru.practicum.shareit.booking.service.BookingService;
 
@@ -28,7 +28,7 @@ public class BookingController {
 
     @PostMapping
     public BookingForUser create(@RequestHeader(name = requestHeader) int booker,
-                                 @Valid @RequestBody CreateBooking booking) {
+                                 @Valid @RequestBody CreateBookingDto booking) {
         log.info(" create BOOKING userId {}, booking.getItemId {}", booker,  booking.getItemId());
         return bookingService.add(booker, booking);
     }

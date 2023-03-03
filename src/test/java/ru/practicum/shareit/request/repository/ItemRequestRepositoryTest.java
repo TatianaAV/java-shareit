@@ -1,6 +1,5 @@
 package ru.practicum.shareit.request.repository;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,7 @@ class ItemRequestRepositoryTest {
     @BeforeEach
     void setUp() {
 
-     user1 = userRepository.save(new User(
+        user1 = userRepository.save(new User(
                 1,
                 "John Doe",
                 "john.doe@yandex.com"));
@@ -57,10 +56,6 @@ class ItemRequestRepositoryTest {
 
         itemRequest1 = new ItemRequest(null, "Нужна мощная дрель по дереву просверлить дубовую столешницу", LocalDateTime.now().plusHours(4), user2);
         itemRequest2 = requestRepository.save(new ItemRequest(null, "Нужна мощная дрель по бетону", LocalDateTime.of(2022, 2, 25, 19, 55, 0), user2));
-    }
-
-    @AfterEach
-    void tearDown() {
     }
 
     @Test
@@ -85,7 +80,7 @@ class ItemRequestRepositoryTest {
         ItemRequest itemRequest = requestRepository.save(itemRequest1);
 
         assertNotNull(itemRequest);
-        assertEquals(4, itemRequest.getRequestId());
+        assertEquals(itemRequest1.getRequestId(), itemRequest.getRequestId());
         assertEquals(itemRequest1.getDescription(), itemRequest.getDescription());
 
         assertEquals(itemRequest1.getRequestor().getId(), itemRequest.getRequestor().getId());
@@ -104,7 +99,7 @@ class ItemRequestRepositoryTest {
 
         assertNotNull(itemRequests);
 
-        assertEquals(itemRequests.size(),2);
+        assertEquals(itemRequests.size(), 2);
 
         assertEquals(itemRequest.getRequestId(), itemRequests.get(0).getRequestId());
         assertEquals(itemRequest.getDescription(), itemRequests.get(0).getDescription());

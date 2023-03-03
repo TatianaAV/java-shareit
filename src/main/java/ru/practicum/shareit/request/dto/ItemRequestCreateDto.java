@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AddItemRequest {
+public class ItemRequestCreateDto {
 
     @NotBlank(message = "Заполните описание зпапроса.")
     private String description;
@@ -24,8 +24,8 @@ public class AddItemRequest {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Europe/Moscow")
     private LocalDateTime created;
 
-    public static AddItemRequest of(Integer userId, AddItemRequest item) {
-        AddItemRequest request = new AddItemRequest();
+    public static ItemRequestCreateDto of(Integer userId, ItemRequestCreateDto item) {
+        ItemRequestCreateDto request = new ItemRequestCreateDto();
 
         request.setDescription(item.getDescription());
         request.setRequestorId(userId);

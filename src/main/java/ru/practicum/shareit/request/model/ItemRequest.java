@@ -24,7 +24,7 @@ public class ItemRequest {
     private Long requestId;
 
     @Column(name = "description", nullable = false)
-    String description;
+    private String description;
 
     @Column(name = "created", nullable = false)
     //@CreationTimestamp
@@ -33,5 +33,5 @@ public class ItemRequest {
 
     @ManyToOne
     @JoinColumn(name = "requestor_id")
-    User requestor;
+    private User requestor;
 }

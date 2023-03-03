@@ -72,18 +72,15 @@ public class ItemServiceImpl implements ItemService {
         User owner = userRepository.findById(item.getOwnerId())
                 .orElseThrow(() -> new NotFoundException("User with id: " + item.getOwnerId() + " does not exist"));
 
-        Item newItem = new Item();
-
-        newItem.setName(item.getName());
-        newItem.setDescription(item.getDescription());
+        ItemRequest itemRequest = null;
         if (item.getRequestId() != null) {
-            ItemRequest request = requestRepository
+            itemRequest = requestRepository
                     .findById(item.getRequestId())
                     .orElseThrow(() -> new ValidationException("Запрос не найден."));
-            newItem.setRequest(request);
         }
-        newItem.setAvailable(item.getAvailable());
-        newItem.setOwner(owner);
+
+        Item newItem = itemMapper.toItem(item, owner, itemRequest);
+
         Item itemSaved = repository.save(newItem);
         return itemMapper.toItemDto(itemSaved);
     }
@@ -107,6 +104,9 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemForOwnerDto> getAll(int userId) {
         List<Item> itemByOwner = repository.findAllByOwnerIdOrderById(userId);
+        if (itemByOwner.isEmpty()) {
+            return List.of();
+        }
 
         Map<Long, Booking> itemsLast = bookingRepository.findListLast(itemByOwner, LocalDateTime.now())
                 .stream()
@@ -132,8 +132,6 @@ public class ItemServiceImpl implements ItemService {
 
         return items.stream().peek(item -> {
             item.setComments(commentMapper.mapCommentDto(itemsCommits.getOrDefault(item.getId(), null)));
-            //а какой в этом смысл на данный момент? тесты сейчас проверяют именно на null
-            // и никакого дефолтного значения вставлять не нужно, если бы нужен был пустой список, то согласна, надо getOfDefault
             item.setLastBooking(bookingMapper.toDto(itemsLast.getOrDefault(item.getId(), null)));
             item.setNextBooking(bookingMapper.toDto(itemsNext.getOrDefault(item.getId(), null)));
         }).collect(Collectors.toList());

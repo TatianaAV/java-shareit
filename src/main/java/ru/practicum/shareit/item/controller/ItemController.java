@@ -25,6 +25,7 @@ public class ItemController {
 
     @GetMapping
     public List<ItemForOwnerDto> getAll(@RequestHeader(name = requestHeader) int userId) {
+        log.info("GetMapping itemService  getAll requestHeader {}", userId);
         return itemService.getAll(userId);
     }
 
@@ -41,25 +42,28 @@ public class ItemController {
 
     @GetMapping("/{id}")
     public ItemForOwnerDto getById(@RequestHeader(name = requestHeader) int userId, @PathVariable long id) {
+        log.info("GetMapping itemService  getById requestHeader {},  itemId {}", userId, id);
         return itemService.getById(id, userId);
     }
 
     @PostMapping
     public ItemDto create(@RequestHeader(name = requestHeader) Integer ownerId,
                           @Valid @RequestBody CreateItemDto item) {
-        log.info("ownerId {}, item {}, requestId {}", ownerId, item, item.getRequestId());
+        log.info("PostMapping itemService create requestHeader {}, item {}, requestId {}", ownerId, item, item.getRequestId());
         return itemService.add(CreateItemDto.of(ownerId, item));
     }
 
     @PostMapping("/{itemId}/comment")
     public CommentDto addComment(@RequestHeader(name = requestHeader) int userId,
                                  @PathVariable("itemId") long itemId, @Valid @RequestBody CommentCreate comment) {
+        log.info("PostMapping itemService  addComment requestHeader {},  text {}", userId, comment.getText());
         return itemService.addComment(userId, comment, itemId);
     }
 
     @PatchMapping("/{id}")
     public ItemDto update(@RequestHeader(name = requestHeader) int userId, @PathVariable("id") long itemId,
                           @RequestBody UpdateItemDto item) {
+        log.info("PatchMapping itemService  update requestHeader {},  itemId {}, item {}", userId, itemId, item.toString());
         return itemService.update(itemId, userId, item);
     }
 }

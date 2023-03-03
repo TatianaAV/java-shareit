@@ -6,7 +6,7 @@ import org.mapstruct.Mapping;
 import org.springframework.data.domain.Page;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.request.dto.AddItemRequest;
+import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
@@ -20,7 +20,7 @@ public interface MapperItemRequest {
 
     @Mapping(target = "requestId", ignore = true)
     @Mapping(target = "requestor", source = "requestor")
-    ItemRequest toItemRequest(User requestor, AddItemRequest requestDto);
+    ItemRequest toItemRequest(User requestor, ItemRequestCreateDto requestDto);
 
     @Mapping(target = "id", source = "requestId")
     ItemRequestDto toItemRequestDto(ItemRequest request);

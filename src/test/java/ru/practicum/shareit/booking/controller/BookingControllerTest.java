@@ -12,7 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.HttpServerErrorException;
 import ru.practicum.shareit.booking.dto.BookingForUser;
-import ru.practicum.shareit.booking.dto.CreateBooking;
+import ru.practicum.shareit.booking.dto.CreateBookingDto;
 import ru.practicum.shareit.booking.dto.GetBookings;
 import ru.practicum.shareit.booking.model.StatusBooking;
 import ru.practicum.shareit.booking.service.BookingService;
@@ -46,7 +46,7 @@ class BookingControllerTest {
     MockMvc mvc;
 
     private BookingForUser bookingForUser;
-    private CreateBooking createBooking;
+    private CreateBookingDto createBookingDto;
 
     @BeforeEach
     void setUp() {
@@ -59,7 +59,7 @@ class BookingControllerTest {
                 new BookingForUser.Booker(1, "John Dow"),
                 new BookingForUser.Item(1L, "Дрель по дереву"));
 
-        createBooking = new CreateBooking(
+        createBookingDto = new CreateBookingDto(
                 LocalDateTime.now().plusDays(1),
                 LocalDateTime.MAX, 1L);
     }
@@ -67,12 +67,12 @@ class BookingControllerTest {
     @Test
     void create() throws Exception {
 
-        when(bookingService.add(anyInt(), any(CreateBooking.class)))
+        when(bookingService.add(anyInt(), any(CreateBookingDto.class)))
                 .thenReturn(bookingForUser);
 
         mvc.perform(post("/bookings")
                         .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(createBooking))
+                        .content(mapper.writeValueAsString(createBookingDto))
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -88,18 +88,18 @@ class BookingControllerTest {
 
 
         verify(bookingService, times(1))
-                .add(anyInt(), any(CreateBooking.class));
+                .add(anyInt(), any(CreateBookingDto.class));
     }
 
     @Test
     void createExceptionStart() throws Exception {
 
-        when(bookingService.add(anyInt(), any(CreateBooking.class)))
+        when(bookingService.add(anyInt(), any(CreateBookingDto.class)))
                 .thenThrow(new ValidationException("Время начала не может быть раньше текущего времени"));
 
         mvc.perform(post("/bookings")
                         .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(new CreateBooking(
+                        .content(mapper.writeValueAsString(new CreateBookingDto(
                                 LocalDateTime.now(),
                                 LocalDateTime.MAX, 1L
                         )))
@@ -109,19 +109,19 @@ class BookingControllerTest {
                 .andExpect(status().is4xxClientError());
 
         verify(bookingService, times(0))
-                .add(anyInt(), any(CreateBooking.class));
+                .add(anyInt(), any(CreateBookingDto.class));
     }
 
     @Test
     void createExceptionFinish() throws Exception {
 
 
-        when(bookingService.add(anyInt(), any(CreateBooking.class)))
+        when(bookingService.add(anyInt(), any(CreateBookingDto.class)))
                 .thenThrow(new ValidationException(""));
 
         mvc.perform(post("/bookings")
                         .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(new CreateBooking(
+                        .content(mapper.writeValueAsString(new CreateBookingDto(
                                 LocalDateTime.now().plusDays(1),
                                 LocalDateTime.now(), 1L
                         )))
@@ -131,19 +131,19 @@ class BookingControllerTest {
                 .andExpect(status().is4xxClientError());
 
         verify(bookingService, times(0))
-                .add(anyInt(), any(CreateBooking.class));
+                .add(anyInt(), any(CreateBookingDto.class));
     }
 
     @Test
     void createExceptionFailItemId() throws Exception {
 
 
-        when(bookingService.add(anyInt(), any(CreateBooking.class)))
+        when(bookingService.add(anyInt(), any(CreateBookingDto.class)))
                 .thenThrow(new ValidationException(""));
 
         mvc.perform(post("/bookings")
                         .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(new CreateBooking(
+                        .content(mapper.writeValueAsString(new CreateBookingDto(
                                 LocalDateTime.now().plusDays(1),
                                 LocalDateTime.now().plusDays(2), null)))
                         .characterEncoding(StandardCharsets.UTF_8)
@@ -152,7 +152,7 @@ class BookingControllerTest {
                 .andExpect(status().is4xxClientError());
 
         verify(bookingService, times(0))
-                .add(anyInt(), any(CreateBooking.class));
+                .add(anyInt(), any(CreateBookingDto.class));
     }
 
     @Test
@@ -180,7 +180,7 @@ class BookingControllerTest {
                 .andExpect(status().isBadRequest());
 
         verify(bookingService, times(0))
-                .add(anyInt(), any(CreateBooking.class));
+                .add(anyInt(), any(CreateBookingDto.class));
     }
 
     @Test
