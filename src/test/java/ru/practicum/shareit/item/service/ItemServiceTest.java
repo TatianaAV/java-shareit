@@ -1,536 +1,255 @@
 package ru.practicum.shareit.item.service;
 
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.Sort;
-import ru.practicum.shareit.booking.dto.BookingForUser;
-import ru.practicum.shareit.booking.mapper.BookingMapper;
-import ru.practicum.shareit.booking.mapper.BookingMapperImpl;
-import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.StatusBooking;
-import ru.practicum.shareit.booking.repository.BookingRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exeption.NotFoundException;
 import ru.practicum.shareit.exeption.ValidationException;
 import ru.practicum.shareit.item.dto.commentdto.CommentCreate;
-import ru.practicum.shareit.item.dto.commentdto.CommentDto;
 import ru.practicum.shareit.item.dto.itemdto.CreateItemDto;
-import ru.practicum.shareit.item.dto.itemdto.ItemDto;
-import ru.practicum.shareit.item.dto.itemdto.ItemForOwnerDto;
 import ru.practicum.shareit.item.dto.itemdto.UpdateItemDto;
-import ru.practicum.shareit.item.mapper.CommentMapper;
-import ru.practicum.shareit.item.mapper.CommentMapperImpl;
-import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.item.mapper.ItemMapperImpl;
-import ru.practicum.shareit.item.model.Comment;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.CommentRepository;
-import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.request.repository.ItemRequestRepository;
-import ru.practicum.shareit.user.mapper.UserMapperImpl;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.Queries;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import javax.validation.ConstraintViolationException;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class ItemServiceTest {
-
-    ItemServiceImpl itemService;
-
-    CommentRepository commentRepository;
-    ItemRepository itemRepository;
-    UserRepository userRepository;
-    BookingRepository bookingRepository;
-    ItemRequestRepository itemRequestRepository;
-
-    ItemMapper itemMapper;
-    CommentMapper commentMapper;
-    BookingMapper bookingMapper;
-    BookingForUser bookingForUser;
-
-    User user1;
-    User user2;
-    Item item1ByOwner1;
-    ItemRequest itemRequest1;
-    ItemDto itemDto1;
-    ItemForOwnerDto itemForOwnerDto;
-    Comment comment1ByItem1Booker2;
-    Booking lastBooking1ByBooker2Item1;
-    Booking nextBooking;
-    Booking booking;
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestDatabase
+@ActiveProfiles("test")
+@Transactional
+class ItemServiceTest implements Queries {
+    @Autowired
+    private ItemService itemService;
+    private CreateItemDto item1;
+    private CreateItemDto item2;
+    private UpdateItemDto updateItem;
 
     @BeforeEach
     void setUp() {
-        commentRepository = mock(CommentRepository.class);
-        bookingRepository = mock(BookingRepository.class);
-        userRepository = mock(UserRepository.class);
-        itemRepository = mock(ItemRepository.class);
-        itemRequestRepository = mock(ItemRequestRepository.class);
+        item1 = new CreateItemDto();
+        item1.setName("Item1");
+        item1.setDescription("Test item1");
+        item1.setAvailable(Boolean.TRUE);
 
+        item2 = new CreateItemDto();
+        item2.setName("Item2");
+        item2.setDescription("Test item2");
+        item2.setAvailable(Boolean.TRUE);
 
-        itemMapper = new ItemMapperImpl(new UserMapperImpl());
-        commentMapper = new CommentMapperImpl(new UserMapperImpl());
-        bookingMapper = new BookingMapperImpl(new UserMapperImpl());
-
-
-        itemService = spy(new ItemServiceImpl(userRepository, itemRepository, commentRepository, bookingRepository, itemRequestRepository, itemMapper, commentMapper, bookingMapper));
-
-        user1 = new User(1, " user 1", "user1@user.ru");
-        user2 = new User(2, " user 2", "user2@user.ru");
-        item1ByOwner1 = new Item(1L, "дрель по дереву", "Дрель без функции перфоратора", true, user1, null);
-        itemRequest1 = new ItemRequest(1L, "Запрос 1 дрели", LocalDateTime.now().minusDays(1), user2);
-        itemDto1 = new ItemDto(1L, "дрель универсальная", "Дрель без функции перфоратора", true, 1L);
-
-        bookingForUser = new BookingForUser(1L, LocalDateTime.now().plusDays(1), LocalDateTime.MAX,
-                StatusBooking.WAITING,
-                new BookingForUser.Booker(1, "John Dow"),
-                new BookingForUser.Item(1L, "Дрель по дереву"));
-
-        comment1ByItem1Booker2 = new Comment(1L, LocalDateTime.now().minusMinutes(5), "Комментарий для вещи 1 от пользователя 2", item1ByOwner1, user2);
-
-        lastBooking1ByBooker2Item1 = new Booking(1L, LocalDateTime.now().minusDays(1), LocalDateTime.now().minusHours(1), StatusBooking.APPROVED, user2, item1ByOwner1);
-        nextBooking = new Booking();
-        booking = new Booking(1L, LocalDateTime.now().minusDays(1), LocalDateTime.now().minusHours(1), StatusBooking.APPROVED, user2, item1ByOwner1);
-        itemForOwnerDto = new ItemForOwnerDto(1L, "Вещь 1", "Описание вещи 1", true, null, null, List.of());
+        updateItem = new UpdateItemDto();
+        updateItem.setAvailable(Boolean.FALSE);
     }
 
     @Test
-    void getByIdByOwner() {
-
-        long itemId = 1;
-        int userId = 1;//owner
-
-        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item1ByOwner1));
-
-        when(commentRepository.findAllByItemIdOrderByCreatedDesc(itemId)).thenReturn(List.of(comment1ByItem1Booker2));
-        when(bookingRepository.findLast(itemId)).thenReturn(lastBooking1ByBooker2Item1);
-        when(bookingRepository.findNext(itemId)).thenReturn(null);
-
-        ItemForOwnerDto actualItem = itemService.getById(itemId, userId);
-
-        assertEquals(item1ByOwner1.getId(), actualItem.getId());
-        assertEquals(item1ByOwner1.getName(), actualItem.getName());
-        assertEquals(item1ByOwner1.getDescription(), actualItem.getDescription());
-
-        assertEquals(comment1ByItem1Booker2.getText(), actualItem.getComments().get(0).getText());
-        assertEquals(lastBooking1ByBooker2Item1.getId(), actualItem.getLastBooking().getId());
-        assertNull(actualItem.getNextBooking());
+    @Sql(statements = {RESET_IDS, ADD_USER})
+    void givenSavedItem_whenFindingItem_thenItemIsFound() {
+        var createResult = itemService.add(CreateItemDto.of(1, item1));
+        var findResult = itemService.getById(createResult.getId(), 1);
+        assertThat(findResult).usingRecursiveComparison()
+                .ignoringFields("comments", "nextBooking", "lastBooking")
+                .isEqualTo(createResult);
     }
 
     @Test
-    void getByIdByBooker() {
+    @Sql(statements = {RESET_IDS, ADD_USER, ADD_USER_2})
+    void getByIdByNotOwner() {
 
-        long itemId = 1;
-        int userId = 2;//booker
-
-        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item1ByOwner1));
-
-        when(commentRepository.findAllByItemIdOrderByCreatedDesc(itemId)).thenReturn(List.of(comment1ByItem1Booker2));
-
-        ItemForOwnerDto actualItem = itemService.getById(itemId, userId);
-
-        assertEquals(item1ByOwner1.getId(), actualItem.getId());
-        assertEquals(item1ByOwner1.getName(), actualItem.getName());
-        assertEquals(item1ByOwner1.getDescription(), actualItem.getDescription());
-
-        assertEquals(comment1ByItem1Booker2.getText(), actualItem.getComments().get(0).getText());
-        assertNull(actualItem.getLastBooking());
-        assertNull(actualItem.getNextBooking());
-
-        verify(itemService, times(1))
-                .getById(anyLong(), anyInt());
-
-        verify(itemRepository, times(1))
-                .findById(anyLong());
+        var createResult = itemService.add(CreateItemDto.of(1, item1));
+        var findResult = itemService.getById(createResult.getId(), 2);
+        assertThat(findResult).usingRecursiveComparison()
+                .ignoringFields("comments", "nextBooking", "lastBooking")
+                .isEqualTo(createResult);
     }
 
     @Test
+    @Sql(statements = {RESET_IDS, ADD_USER})
     void getByIdNotFoundException() {
-
-        long itemId = 1;
-        int userId = 1;
-
-        when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> itemService.getById(itemId, userId));
-
-        verify(itemService, times(1))
-                .getById(anyLong(), anyInt());
-
-        verify(itemRepository, times(1))
-                .findById(anyLong());
+        assertThrows(NotFoundException.class, () -> itemService.getById(1, 1));
     }
 
     @Test
-    void add() {
-
-        int userId = 1;
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user1));
-        when(itemRepository.save(any(Item.class))).thenReturn(item1ByOwner1);
-
-        ItemDto actualItem = itemService.add(new CreateItemDto("дрель по дереву", "Дрель без функции перфоратора", true, null, userId));
-
-        assertEquals(item1ByOwner1.getId(), actualItem.getId());
-        assertEquals(item1ByOwner1.getName(), actualItem.getName());
-        assertEquals(item1ByOwner1.getDescription(), actualItem.getDescription());
-
-        verify(itemService, times(1))
-                .add(any(CreateItemDto.class));
-
-        verify(itemRepository, times(1))
-                .save(any(Item.class));
+    void givenNoOwner_whenCreatingItem_thenThrowException() {
+        assertThatThrownBy(() -> itemService.add(CreateItemDto.of(99, item1)))
+                .isInstanceOf(NotFoundException.class);
     }
 
     @Test
-    void addWithRequest() {
-
-        int userId = 1;
-        long requestId = 1;
-        Item itemWithRequest =
-                new Item(1L, "дрель по дереву",
-                        "Дрель без функции перфоратора",
-                        true, user1, itemRequest1);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user1));
-        when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.of(itemRequest1));
-        when(itemRepository.save(any(Item.class))).thenReturn(itemWithRequest);
-
-        ItemDto actualItem = itemService.add(new CreateItemDto("дрель по дереву", "Дрель без функции перфоратора", true, requestId, userId));
-
-        assertEquals(itemWithRequest.getId(), actualItem.getId());
-        assertEquals(itemWithRequest.getName(), actualItem.getName());
-        assertEquals(itemWithRequest.getDescription(), actualItem.getDescription());
-        assertEquals(itemWithRequest.getRequest().getRequestId(), actualItem.getRequestId());
-
-        verify(itemService, times(1))
-                .add(any(CreateItemDto.class));
-
-        verify(itemRepository, times(1))
-                .save(any(Item.class));
-    }
-
-    @Test
+    @Sql(statements = {RESET_IDS, ADD_USER, ADD_USER_2})
     void addValidationExceptionRequest() {
-
-        int userId = 1;
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user1));
-
-        when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.empty());
-
-        assertThrows(ValidationException.class, () -> itemService.add(new CreateItemDto("дрель по дереву", "Дрель без функции перфоратора", true, 2L, userId)));
-
-        verify(itemService, times(1))
-                .add(any(CreateItemDto.class));
-
-        verify(itemRepository, times(0))
-                .save(any(Item.class));
+        assertThrows(ValidationException.class, () -> itemService.add(new CreateItemDto("дрель по дереву", "Дрель без функции перфоратора", true, 2L, 1)));
     }
 
     @Test
-    void addValidationExceptionUser() {
-
-        int userId = 1;
-
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> itemService.add(new CreateItemDto("дрель по дереву", "Дрель без функции перфоратора", true, 2L, userId)));
-
-        verify(itemService, times(1))
-                .add(any(CreateItemDto.class));
-
-        verify(itemRepository, times(0))
-                .save(any(Item.class));
+    @Sql(statements = {RESET_IDS, ADD_USER})
+    void givenTwoSavedItems_whenFindingAllItems_thenAllItemsAreFound() {
+        itemService.add(CreateItemDto.of(1, item1));
+        itemService.add(CreateItemDto.of(1, item2));
+        var result = itemService.getAll(1);
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0))
+                .usingRecursiveComparison()
+                .ignoringFields("id", "comments", "nextBooking", "lastBooking")
+                .isEqualTo(item1);
+        assertThat(result.get(1))
+                .usingRecursiveComparison()
+                .ignoringFields("id", "comments", "nextBooking", "lastBooking")
+                .isEqualTo(item2);
     }
 
     @Test
-    void search() {
-
-        when(itemRepository.search(anyString())).thenReturn(List.of(item1ByOwner1));
-
-        List<ItemDto> actualItemList = itemService.search("ДреЛь", 2);
-
-        assertEquals(item1ByOwner1.getId(), actualItemList.get(0).getId());
-        assertEquals(item1ByOwner1.getName(), actualItemList.get(0).getName());
-        assertEquals(item1ByOwner1.getDescription(), actualItemList.get(0).getDescription());
-
-        verify(itemService, times(1))
-                .search(anyString(), anyInt());
-
-        verify(itemRepository, times(1))
-                .search(anyString());
+    @Sql(statements = {RESET_IDS, ADD_USER})
+    void givenValidItemDto_whenCreatingItem_thenItemIsCreated() {
+        var result = itemService.add(CreateItemDto.of(1, item1));
+        assertThat(result)
+                .usingRecursiveComparison()
+                .ignoringFields("id")
+                .isEqualTo(item1);
+        assertThat(result.getId()).isEqualTo(1L);
     }
 
     @Test
-    void searchEmptyItemsList() {
-
-        when(itemRepository.search(anyString())).thenReturn(List.of());
-
-        List<ItemDto> actualItemList = itemService.search("ДреЛь", 2);
-
-        assertEquals(0, actualItemList.size());
-
-        verify(itemService, times(1))
-                .search(anyString(), anyInt());
-
-        verify(itemRepository, times(1))
-                .search(anyString());
+    @Sql(statements = {RESET_IDS, ADD_USER})
+    void givenValidUpdateDto_whenUpdatingItem_thenItemIsUpdated() {
+        var createResult = itemService.add(CreateItemDto.of(1, item1));
+        var updateResult = itemService.update(1L, 1, updateItem);
+        assertThat(updateResult)
+                .usingRecursiveComparison()
+                .ignoringFields("available")
+                .isEqualTo(createResult);
+        assertThat(updateResult.getAvailable()).isEqualTo(updateItem.getAvailable());
     }
 
     @Test
-    void addComment() {
-
-        when(bookingRepository
-                .findBookingByBookerAndItem(anyInt(), anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
-        when(commentRepository.save(any(Comment.class))).thenReturn(comment1ByItem1Booker2);
-
-        CommentDto actualComment = itemService.addComment(booking.getBooker().getId(), new CommentCreate("Комментарий для вещи 1 от пользователя 2"), booking.getItem().getId());
-
-        assertEquals(comment1ByItem1Booker2.getId(), actualComment.getId());
-        assertEquals(comment1ByItem1Booker2.getText(), actualComment.getText());
-        assertEquals(comment1ByItem1Booker2.getCreated(), actualComment.getCreated());
-        assertEquals(comment1ByItem1Booker2.getAuthor().getName(), actualComment.getAuthorName());
-
-        verify(itemService, times(1))
-                .addComment(anyInt(), any(CommentCreate.class), anyLong());
-
-        verify(commentRepository, times(1))
-                .save(any(Comment.class));
+    @Sql(statements = {RESET_IDS, ADD_USER})
+    void givenValidUpdateDto_whenUpdatingItem_thenItemIsUpdatedName() {
+        var createResult = itemService.add(CreateItemDto.of(1, item1));
+        updateItem.setName("updated item");
+        //  updateItem.setDescription("updated description");
+        var updateResult = itemService.update(1L, 1, updateItem);
+        assertThat(updateResult)
+                .usingRecursiveComparison()
+                .ignoringFields("available", "name")
+                .isEqualTo(createResult);
+        assertThat(updateResult.getAvailable()).isEqualTo(updateItem.getAvailable());
+        assertThat(updateResult.getName()).isEqualTo(updateItem.getName());
     }
 
     @Test
+    @Sql(statements = {RESET_IDS, ADD_USER})
+    void givenValidUpdateDto_whenUpdatingItem_thenItemIsUpdatedDescription() {
+        var createResult = itemService.add(CreateItemDto.of(1, item1));
+        updateItem.setDescription("updated description");
+        var updateResult = itemService.update(1L, 1, updateItem);
+        assertThat(updateResult)
+                .usingRecursiveComparison()
+                .ignoringFields("available", "description")
+                .isEqualTo(createResult);
+        assertThat(updateResult.getAvailable()).isEqualTo(updateItem.getAvailable());
+        assertThat(updateResult.getDescription()).isEqualTo(updateItem.getDescription());
+    }
+
+    @Test
+    @Sql(statements = {RESET_IDS, ADD_USER})
+    void givenValidUpdateDtoButWrongOwner_whenUpdatingItem_thenThrowException() {
+        itemService.add(CreateItemDto.of(1, item1));
+        assertThatThrownBy(() -> itemService.update(1L, 11, updateItem))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    @Sql(statements = {RESET_IDS, ADD_USER})
+    void givenValidUpdateDtoButItemId_whenUpdatingItem_thenThrowException() {
+        itemService.add(CreateItemDto.of(1, item1));
+        assertThatThrownBy(() -> itemService.update(99L, 1, updateItem))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    @Sql(statements = {RESET_IDS, ADD_USER})
+    void givenSearchRequest_whenSearching_thenFindResultByNamen() {
+        itemService.add(CreateItemDto.of(1, item1));
+        itemService.add(CreateItemDto.of(1, item2));
+        var result = itemService.search("iTeM", 1);
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0))
+                .usingRecursiveComparison()
+                .ignoringFields("id", "comments", "nextBooking", "lastBooking")
+                .isEqualTo(item1);
+        assertThat(result.get(1))
+                .usingRecursiveComparison()
+                .ignoringFields("id", "comments", "nextBooking", "lastBooking")
+                .isEqualTo(item2);
+    }
+
+    @Test
+    @Sql(statements = {RESET_IDS, ADD_USER})
+    void givenSearchRequest_whenSearching_thenFindResultByDescription() {
+        itemService.add(CreateItemDto.of(1, item1));
+        itemService.add(CreateItemDto.of(1, item2));
+        var result = itemService.search("TeSt", 1);
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0))
+                .usingRecursiveComparison()
+                .ignoringFields("id", "comments", "nextBooking", "lastBooking")
+                .isEqualTo(item1);
+        assertThat(result.get(1))
+                .usingRecursiveComparison()
+                .ignoringFields("id", "comments", "nextBooking", "lastBooking")
+                .isEqualTo(item2);
+    }
+
+    @Test
+    @Sql(statements = {RESET_IDS, ADD_USER, ADD_USER_2, ADD_ITEM, ADD_BOOKING_ITEM1_USER2})
+    void givenSavedItemWithPreviousBookingByUser2_whenCommentingItem_thenCommentIsCreated() {
+        var result = itemService.addComment(2, new CommentCreate("Comment"), 1L);
+        assertThat(result.getText()).isEqualTo("Comment");
+        var commentResult = itemService.getById(1L, 1);
+        assertThat(commentResult.getComments().contains(result));
+    }
+
+    @Test
+    @Sql(statements = {RESET_IDS, ADD_USER, ADD_USER_2, ADD_ITEM, ADD_BOOKING_ITEM1_USER2})
+    void givenSavedItemWithPreviousBookingByUser2_whenCommentingItemWithWrongUser_thenThrowException() {
+        assertThatThrownBy(() -> itemService.addComment(99, new CommentCreate("Comment"), 1L)).isInstanceOf(ValidationException.class);
+    }
+
+    @Test
+    @Sql(statements = {RESET_IDS, ADD_USER, ADD_USER_2, ADD_ITEM, ADD_BOOKING_ITEM1_USER2})
     void addCommentEmptyTestMapping() {
-
-        when(bookingRepository
-                .findBookingByBookerAndItem(anyInt(), anyLong(), any(LocalDateTime.class))).thenReturn(Optional.of(booking));
-        when(commentRepository.save(any(Comment.class))).thenReturn(new Comment());
-
-        CommentDto actualComment = itemService.addComment(booking.getBooker().getId(), new CommentCreate("Комментарий для вещи 1 от пользователя 2"), booking.getItem().getId());
-
-        assertNull(actualComment.getText());
+        assertThatThrownBy(() -> itemService.addComment(2, new CommentCreate(" "), 1L)).isInstanceOf(ConstraintViolationException.class);
     }
 
     @Test
-    void addCommentException() {
-
-        long itemId = 1;
-        int userId = 1;
-
-        when(bookingRepository
-                .findBookingByBookerAndItem(anyInt(), anyLong(), any(LocalDateTime.class))).thenReturn(Optional.empty());
-
-        assertThrows(ValidationException.class, () -> itemService.addComment(userId, new CommentCreate(), itemId));
-
-        verify(itemService, times(1))
-                .addComment(anyInt(), any(CommentCreate.class), anyLong());
-
-        verify(commentRepository, times(0))
-                .save(any(Comment.class));
+    @Sql(statements = {RESET_IDS, ADD_USER, ADD_USER_2, ADD_iTEM_REQUEST})
+    void addWithRequest() {
+        item1.setRequestId(1L);
+        var createResult = itemService.add(CreateItemDto.of(1, item1));
+        var findResult = itemService.getById(createResult.getId(), 2);
+        assertThat(findResult).usingRecursiveComparison()
+                .ignoringFields("comments", "nextBooking", "lastBooking")
+                .isEqualTo(createResult);
     }
 
     @Test
-    void getAll() {
-        //список вещей пользователя
-        when(itemRepository.findAllByOwnerIdOrderById(anyInt())).thenReturn(List.of(item1ByOwner1));
-        //последнее бронирование
-        when(bookingRepository.findListLast(anyList(), any(LocalDateTime.class))).thenReturn(List.of(lastBooking1ByBooker2Item1));
-        //следующее бронирование
-        when(bookingRepository.findListNext(anyList(), any(LocalDateTime.class))).thenReturn(List.of());
-        when(commentRepository.findByItemIn(anyList(), any(Sort.class))).thenReturn(List.of(comment1ByItem1Booker2));
-
-        List<ItemForOwnerDto> actualItemList = itemService.getAll(item1ByOwner1.getOwner().getId());
-
-        assertEquals(item1ByOwner1.getId(), actualItemList.get(0).getId());
-        assertEquals(item1ByOwner1.getName(), actualItemList.get(0).getName());
-        assertEquals(item1ByOwner1.getDescription(), actualItemList.get(0).getDescription());
-
-        assertEquals(comment1ByItem1Booker2.getText(), actualItemList.get(0).getComments().get(0).getText());
-        assertEquals(lastBooking1ByBooker2Item1.getId(), actualItemList.get(0).getLastBooking().getId());
-        assertNull(actualItemList.get(0).getNextBooking());
+    @Sql(statements = {RESET_IDS, ADD_USER, ADD_USER_2})
+    void searchEmptyItemsList() {
+        var actualItemList = itemService.search("ДреЛь", 2);
+        assertThat(actualItemList.size()).isZero();
     }
 
     @Test
-    void getAllEmptyComment() {
-        //список вещей пользователя
-        when(itemRepository.findAllByOwnerIdOrderById(anyInt())).thenReturn(List.of(item1ByOwner1));
-        //последнее бронирование
-        when(bookingRepository.findListLast(anyList(), any(LocalDateTime.class))).thenReturn(List.of());
-        //следующее бронирование
-        when(bookingRepository.findListNext(anyList(), any(LocalDateTime.class))).thenReturn(List.of());
-        when(commentRepository.findByItemIn(anyList(), any(Sort.class))).thenReturn(List.of());
-
-        List<ItemForOwnerDto> actualItemList = itemService.getAll(item1ByOwner1.getOwner().getId());
-
-        assertEquals(item1ByOwner1.getId(), actualItemList.get(0).getId());
-        assertEquals(item1ByOwner1.getName(), actualItemList.get(0).getName());
-        assertEquals(item1ByOwner1.getDescription(), actualItemList.get(0).getDescription());
-
-        assertEquals(1, actualItemList.size());
-        assertNull(actualItemList.get(0).getLastBooking());
-        assertNull(actualItemList.get(0).getNextBooking());
-    }
-
-    @Test
-    void getAllEmptyList() {
-        //список вещей пользователя
-        when(itemRepository.findAllByOwnerIdOrderById(anyInt())).thenReturn(List.of());
-        //последнее бронирование
-        when(bookingRepository.findListLast(anyList(), any(LocalDateTime.class))).thenReturn(List.of());
-        //следующее бронирование
-        when(bookingRepository.findListNext(anyList(), any(LocalDateTime.class))).thenReturn(List.of());
-        when(commentRepository.findByItemIn(anyList(), any(Sort.class))).thenReturn(List.of());
-
-        List<ItemForOwnerDto> actualItemList = itemService.getAll(item1ByOwner1.getOwner().getId());
-
-        assertEquals(0, actualItemList.size());
-    }
-
-    @Test
-    void update() {
-
-        when(itemRepository.findByIdAndOwner_Id(anyLong(), anyInt())).thenReturn(Optional.of(item1ByOwner1));
-
-        ItemDto actualItemList = itemService.update(item1ByOwner1.getId(), item1ByOwner1.getOwner().getId(), new UpdateItemDto("Обновленное название", "Обновленное описание", true));
-
-        assertEquals(item1ByOwner1.getId(), actualItemList.getId());
-        assertEquals(item1ByOwner1.getName(), "Обновленное название");
-        assertEquals(item1ByOwner1.getDescription(), "Обновленное описание");
-
-        verify(itemService, times(1))
-                .update(anyLong(), anyInt(), any(UpdateItemDto.class));
-
-        verify(itemRepository, times(1))
-                .findByIdAndOwner_Id(anyLong(), anyInt());
-    }
-
-    @Test
-    void updateOnlyName() {
-
-        when(itemRepository.findByIdAndOwner_Id(anyLong(), anyInt())).thenReturn(Optional.of(item1ByOwner1));
-
-        ItemDto actualItemList = itemService.update(
-                item1ByOwner1.getId(),
-                item1ByOwner1.getOwner().getId(),
-                new UpdateItemDto("Обновленное название", null, true));
-
-        assertEquals(item1ByOwner1.getId(), actualItemList.getId());
-        assertEquals(item1ByOwner1.getName(), "Обновленное название");
-        assertEquals(item1ByOwner1.getDescription(), "Дрель без функции перфоратора");
-
-        verify(itemService, times(1))
-                .update(anyLong(), anyInt(), any(UpdateItemDto.class));
-
-        verify(itemRepository, times(1))
-                .findByIdAndOwner_Id(anyLong(), anyInt());
-    }
-
-    @Test
-    void updateOnlyNameDescriptionEmpty() {
-
-        when(itemRepository.findByIdAndOwner_Id(anyLong(), anyInt())).thenReturn(Optional.of(item1ByOwner1));
-
-        ItemDto actualItemList = itemService.update(
-                item1ByOwner1.getId(),
-                item1ByOwner1.getOwner().getId(),
-                new UpdateItemDto("Обновленное название", "  ", true));
-
-        assertEquals(item1ByOwner1.getId(), actualItemList.getId());
-        assertEquals(item1ByOwner1.getName(), "Обновленное название");
-        assertEquals(item1ByOwner1.getDescription(), "Дрель без функции перфоратора");
-
-        verify(itemService, times(1))
-                .update(anyLong(), anyInt(), any(UpdateItemDto.class));
-
-        verify(itemRepository, times(1))
-                .findByIdAndOwner_Id(anyLong(), anyInt());
-    }
-
-    @Test
-    void updateOnlyAvailable() {
-
-        when(itemRepository.findByIdAndOwner_Id(anyLong(), anyInt())).thenReturn(Optional.of(item1ByOwner1));
-
-        ItemDto actualItem = itemService.update(
-                item1ByOwner1.getId(),
-                item1ByOwner1.getOwner().getId(),
-                new UpdateItemDto(null, null, false));
-
-        assertEquals(item1ByOwner1.getId(), actualItem.getId());
-        assertEquals(item1ByOwner1.getName(), actualItem.getName());
-        assertEquals(item1ByOwner1.getDescription(), actualItem.getDescription());
-        assertEquals(item1ByOwner1.getAvailable(), false);
-
-        verify(itemService, times(1))
-                .update(anyLong(), anyInt(), any(UpdateItemDto.class));
-
-        verify(itemRepository, times(1))
-                .findByIdAndOwner_Id(anyLong(), anyInt());
-    }
-
-    @Test
-    void updateOnlyAvailableNull() {
-
-        when(itemRepository.findByIdAndOwner_Id(anyLong(), anyInt())).thenReturn(Optional.of(item1ByOwner1));
-
-        ItemDto actualItem = itemService.update(
-                item1ByOwner1.getId(),
-                item1ByOwner1.getOwner().getId(),
-                new UpdateItemDto(" ", " ", null));
-
-        assertEquals(item1ByOwner1.getId(), actualItem.getId());
-        assertEquals(item1ByOwner1.getName(), actualItem.getName());
-        assertEquals(item1ByOwner1.getDescription(), actualItem.getDescription());
-        assertEquals(item1ByOwner1.getAvailable(), actualItem.getAvailable());
-
-        verify(itemService, times(1))
-                .update(anyLong(), anyInt(), any(UpdateItemDto.class));
-
-        verify(itemRepository, times(1))
-                .findByIdAndOwner_Id(anyLong(), anyInt());
-    }
-
-    @Test
-    void updateOnlyAvailableDescriptionEmpty() {
-
-        when(itemRepository.findByIdAndOwner_Id(anyLong(), anyInt())).thenReturn(Optional.of(item1ByOwner1));
-
-        ItemDto actualItem = itemService.update(
-                item1ByOwner1.getId(),
-                item1ByOwner1.getOwner().getId(),
-                new UpdateItemDto(" ", " ", false));
-
-        assertEquals(item1ByOwner1.getId(), actualItem.getId());
-        assertEquals(item1ByOwner1.getName(), actualItem.getName());
-        assertEquals(item1ByOwner1.getDescription(), actualItem.getDescription());
-        assertEquals(item1ByOwner1.getAvailable(), false);
-
-        verify(itemService, times(1))
-                .update(anyLong(), anyInt(), any(UpdateItemDto.class));
-
-        verify(itemRepository, times(1))
-                .findByIdAndOwner_Id(anyLong(), anyInt());
-    }
-
-    @Test
-    void updateException() {
-
-        when(itemRepository.findByIdAndOwner_Id(anyLong(), anyInt())).thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> itemService.update(
-                item1ByOwner1.getId(),
-                item1ByOwner1.getOwner().getId(),
-                new UpdateItemDto()));
-
-        verify(itemService, times(1))
-                .update(anyLong(), anyInt(), any(UpdateItemDto.class));
-
-        verify(itemRepository, times(1))
-                .findByIdAndOwner_Id(anyLong(), anyInt());
+    @Sql(statements = {RESET_IDS, ADD_USER, ADD_USER_2})
+    void getAllEmptyItemsList() {
+        var actualItemList = itemService.getAll(2);
+        assertThat(actualItemList.size()).isZero();
     }
 }

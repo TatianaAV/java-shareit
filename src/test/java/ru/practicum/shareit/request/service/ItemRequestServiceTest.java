@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.Queries;
 import ru.practicum.shareit.exeption.NotFoundException;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.request.dto.GetItemRequest;
@@ -25,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
 @Transactional
-class ItemRequestServiceSpringBootTest implements Queries {
+class ItemRequestServiceTest implements Queries {
     @Autowired
     private ItemRequestService itemRequestService;
 

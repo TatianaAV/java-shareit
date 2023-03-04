@@ -1,4 +1,4 @@
-package ru.practicum.shareit.request.service;
+package ru.practicum.shareit;
 
 
 
@@ -12,6 +12,9 @@ public interface Queries {
     String ADD_ITEM_NOT_AVAILABLE =
             "insert into items (available, description, name, owner_id) " +
                     "values ('false', 'Test item1', 'Item1', 1);";
+
+    String ADD_iTEM_REQUEST = "insert into item_request ( description, created, requestor_id)" +
+        "values('request 1', '2022-09-19 00:32:51.000000', 2)";
     String ADD_BOOKING_ITEM1_USER2 =
             "insert into bookings (finish, start, status, booker_id, item_id) " +
                     "values ('2021-12-18 19:28:21.000000', '2020-12-18 19:26:27.000000', 'APPROVED', 2, 1)";
