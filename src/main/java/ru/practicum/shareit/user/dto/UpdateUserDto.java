@@ -8,7 +8,6 @@ import lombok.Setter;
 import javax.validation.constraints.Email;
 
 
-
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,5 +19,5 @@ public class UpdateUserDto {
     private String name;
 
     @Email(message = "Email не соответствует формату")
-    private  String email;
+    private String email;
 }

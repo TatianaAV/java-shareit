@@ -41,11 +41,4 @@ public class Booking {
     @JoinColumn(name = "item_id", nullable = false)
     @ToString.Exclude
     private Item item;
-
-    @PrePersist
-    public void setStatus() {
-        if (this.status == null) {
-            this.status = StatusBooking.WAITING;
-        }
-    }
 }

@@ -17,6 +17,11 @@ public class UserController {
 
     private final UserService userService;
 
+    @PostMapping
+    public UserDto createUser(@Valid @RequestBody CreatUserDto user) {
+        return userService.createUser(user);
+    }
+
     @GetMapping
     public List<UserDto> getUsers() {
         return userService.getUsers();
@@ -25,11 +30,6 @@ public class UserController {
     @GetMapping("/{id}")
     public UserDto getUserById(@PathVariable int id) {
         return userService.getUserById(id);
-    }
-
-    @PostMapping
-    public UserDto createUser(@Valid @RequestBody CreatUserDto user) {
-        return userService.createUser(user);
     }
 
     @PatchMapping("/{id}")

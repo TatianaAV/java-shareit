@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.booking.model.Booking;
@@ -26,55 +28,51 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Optional<Booking> findBookingByBookerAndItem(int bookerId, long itemId, LocalDateTime currentTime);
 
     // BOOKER ALL
-    @Query(nativeQuery = true, value = "SELECT * FROM bookings " +
-            "WHERE  booker_id = ? " +
-            "AND status IN ('APPROVED', 'WAITING' ) ORDER BY start DESC")
-    List<Booking> findAllByBooker(int bookerId);
+    @Query(value = "SELECT b FROM Booking b " +
+            " WHERE b.booker.id = ?1")
+    Page<Booking> findAllByBooker(Integer booker, PageRequest request);
 
     // BOOKER PAST
     @Query(nativeQuery = true, value = " SELECT * FROM bookings b " +
             "WHERE b.booker_id = ? " +
-            "AND CURRENT_TIMESTAMP > b.finish AND b.status = 'APPROVED' " +
-            "ORDER BY b.start")
-    List<Booking> findAllByPast(int bookerId);
+            "AND CURRENT_TIMESTAMP > b.finish AND b.status = 'APPROVED' ")
+    Page<Booking> findAllByPast(int bookerId, PageRequest request);
 
     // BOOKER CURRENT
     @Query("SELECT b FROM Booking b " +
             "WHERE b.booker.id = ?1  AND CURRENT_TIMESTAMP BETWEEN b.start AND  b.end  ")
-    List<Booking> findAllByCurrent(int booker);
+    Page<Booking> findAllByCurrent(int booker, PageRequest request);
 
     // BOOKER FUTURE
     @Query("SELECT b FROM Booking b WHERE b.booker.id = ?1  " +
             "AND b.start > CURRENT_TIMESTAMP " +
-            "AND (b.status = 'APPROVED' OR  b.status = 'WAITING')" +
-            "ORDER BY b.start desc ")
-    List<Booking> findAllByFuture(int bookerId);
+            "AND (b.status = 'APPROVED' OR  b.status = 'WAITING')")
+    Page<Booking> findAllByFuture(int bookerId, PageRequest request);
 
     //BOOKER  APPROVE, WAITING, REJECTED
     @Query("SELECT b FROM Booking b WHERE b.booker.id = ?1  AND b.status = ?2")
-    List<Booking> findAllByBookerStatus(int booker, StatusBooking status);
+    Page<Booking> findAllByBookerStatus(int booker, StatusBooking status, PageRequest request);
 
     //OWNER ALL
-    @Query(value = "SELECT b FROM Booking b " +
-            " WHERE b.item.owner.id = ?1 AND (b.status = 'APPROVED' OR  b.status = 'WAITING') " +
-            " ORDER BY b.start DESC")
-    List<Booking> findAllByItemOwner(int ownerId);
+   @Query(value = "SELECT b FROM Booking b " +
+            " WHERE b.item.owner = ?1")
+    Page<Booking> findAllByItemOwner(User owner, PageRequest request);
+  //  Page<Booking> findByItem_OwnerOrderByStartDesc(User owner, PageRequest request);
 
     //OWNER PAST
-    List<Booking> findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(User owner, LocalDateTime now);
+  Page<Booking> findBookingsByItemOwnerAndEndBefore(User owner, LocalDateTime now, PageRequest reg);
 
     //OWNER CURRENT
     @Query("SELECT b FROM Booking b WHERE b.item.owner.id = ?1 AND CURRENT_TIMESTAMP BETWEEN b.start AND b.end")
-    List<Booking> findAllOwnerCurrent(int ownerId);
+    Page<Booking> findAllOwnerCurrent(int ownerId, PageRequest reg);
 
     //OWNER FUTURE
     @Query("SELECT b FROM Booking b WHERE b.item.owner.id = ?1 " +
-            "AND b.start > CURRENT_TIMESTAMP AND (b.status = 'APPROVED' OR  b.status = 'WAITING') " +
-            "ORDER BY b.start DESC")
-    List<Booking> findAllOwnerFuture(int ownerId);
+            "AND b.start > CURRENT_TIMESTAMP AND (b.status = 'APPROVED' OR  b.status = 'WAITING')")
+    Page<Booking> findAllOwnerFuture(int ownerId, PageRequest reg);
 
     //owner APPROVE, WAITING, REJECTED
-    List<Booking> findAllByItemOwnerIdAndStatusEquals(int ownerId, StatusBooking status);
+    Page<Booking> findAllByItemOwnerIdAndStatusEquals(int ownerId, StatusBooking status, PageRequest reg);
 
     @Query(nativeQuery = true, value = "SELECT * FROM bookings b " +
             "WHERE b.item_id = ? " +

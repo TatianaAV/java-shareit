@@ -1,10 +1,14 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingForUser;
-import ru.practicum.shareit.booking.dto.CreateBooking;
+import ru.practicum.shareit.booking.dto.CreateBookingDto;
+import ru.practicum.shareit.booking.dto.GetBookings;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.StatusBooking;
@@ -20,7 +24,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-
+@Slf4j
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
@@ -34,23 +38,19 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingForUser getById(long bookingId, int userId) {
         Booking booking = bookingRepository.findByIdByOwnerId(bookingId, userId)
-                .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
-        if (userId == booking.getItem().getOwner().getId()
-                || userId == booking.getBooker().getId()) {
-            return mapper.toBookingForUser(booking);
-        }
-        throw new ValidationException("Вы не можете получить бронирование, недостаточно прав.");
+                .orElseThrow(() -> new NotFoundException("Бронирование не найдено или вы не можете получить бронирование, недостаточно прав."));
+        return mapper.toBookingForUser(booking);
     }
 
     @Transactional
     @Override
-    public BookingForUser add(int bookerId, CreateBooking booking) {
+    public BookingForUser add(int bookerId, CreateBookingDto booking) {
         final User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new NotFoundException("User with id: " + bookerId + " does not exist"));
         final Item item = itemRepository.findById(booking.getItemId()).orElseThrow(() -> new NotFoundException("вещь не найдена"));
 
         if (booking.getEnd().equals(booking.getStart())) {
-            throw new ValidationException("Время начала бронирования не может быть временем начала");
+            throw new ValidationException("Время конца бронирования не может быть временем начала");
         }
         if (booking.getEnd().isBefore(booking.getStart())) {
             throw new ValidationException("Время начала бронирования после окончания");
@@ -62,6 +62,7 @@ public class BookingServiceImpl implements BookingService {
             throw new ValidationException("Вещь недоступна");
         }
         Booking booking1 = mapper.toBooking(booking, booker, item);
+        booking1.setStatus(StatusBooking.WAITING);
         return mapper.toBookingForUser(bookingRepository.save(booking1));
     }
 
@@ -85,12 +86,9 @@ public class BookingServiceImpl implements BookingService {
         }
 
         if (userId == booking.getBooker().getId()) {
-            if (!approved) {
-                if (!booking.getStatus().equals(StatusBooking.CURRENT)
-                        && (booking.getStatus().equals(StatusBooking.WAITING)
-                        || booking.getStatus().equals(StatusBooking.APPROVED))) {
+            if (!approved && (booking.getStatus().equals(StatusBooking.WAITING)
+                    || booking.getStatus().equals(StatusBooking.APPROVED))) {
                     booking.setStatus(StatusBooking.CANCELLED);
-                }
             } else {
                 throw new NotFoundException("Бронирование может быть одобрено только владельцем");
             }
@@ -100,82 +98,106 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingForUser> getBookingsOwner(int ownerId, String stateParam) {
-        final User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new NotFoundException("User with id: " + ownerId + " does not exist"));
-        StatusBooking status = StatusBooking.from(stateParam);
-        List<Booking> bookings;
+    public List<BookingForUser> getBookingsOwner(GetBookings req) {
+        StatusBooking status = StatusBooking.from(req.getStateParam());
+        final User owner = userRepository.findById(req.getUserId())
+                .orElseThrow(() -> new NotFoundException("User with id: " + req.getUserId() + " does not exist"));
+
+
+        PageRequest pageRequest = req.getPageRequest();
+
+        log.info("pageRequest FROM {}, SIZE {}", pageRequest.getPageNumber(), pageRequest.getPageSize());
+
+        Page<Booking> bookings = null;
         switch (status) {
             case ALL:
-                bookings = bookingRepository.findAllByItemOwner(ownerId);
+                bookings = bookingRepository.findAllByItemOwner(owner, pageRequest);
+                log.info("Page<Bookings> OWNER ALL  {}", bookings.getSize());
                 break;
 
             case CURRENT:
-                bookings = bookingRepository.findAllOwnerCurrent(ownerId);
+                bookings = bookingRepository.findAllOwnerCurrent(req.getUserId(), pageRequest);
+                log.info("Page<Bookings> OWNER CURRENT  {}", bookings.getSize());
                 break;
 
             case FUTURE:
-                bookings = bookingRepository.findAllOwnerFuture(ownerId);
+                bookings = bookingRepository.findAllOwnerFuture(req.getUserId(), pageRequest);
+                log.info("Page<Bookings> OWNER FUTURE  {}", bookings.getSize());
                 break;
 
             case PAST:
-                bookings = bookingRepository.findBookingsByItemOwnerAndEndBeforeOrderByStartDesc(owner, LocalDateTime.now());
+                bookings = bookingRepository.findBookingsByItemOwnerAndEndBefore(owner, LocalDateTime.now(), pageRequest);
+                log.info("Page<Bookings> OWNER PAST  {}",bookings.getSize());
                 break;
 
             case REJECTED:
-                bookings = bookingRepository.findAllByItemOwnerIdAndStatusEquals(ownerId, StatusBooking.REJECTED);
+                bookings = bookingRepository.findAllByItemOwnerIdAndStatusEquals(req.getUserId(), StatusBooking.REJECTED, pageRequest);
+                log.info("Page<Bookings> OWNER REJECTED  {}", bookings.getSize());
                 break;
 
             case WAITING:
-                bookings = bookingRepository.findAllByItemOwnerIdAndStatusEquals(ownerId, StatusBooking.WAITING);
+                bookings = bookingRepository.findAllByItemOwnerIdAndStatusEquals(req.getUserId(), StatusBooking.WAITING, pageRequest);
+                log.info("Page<Bookings> OWNER WAITING  {}", bookings.getSize());
                 break;
 
             case APPROVED:
-                bookings = bookingRepository.findAllByItemOwnerIdAndStatusEquals(ownerId, StatusBooking.APPROVED);
+                bookings = bookingRepository.findAllByItemOwnerIdAndStatusEquals(req.getUserId(), StatusBooking.APPROVED, pageRequest);
+                log.info("Page<Bookings> OWNER APPROVED  {}", bookings.getSize());
                 break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + status);
+
         }
-        return mapper.toMapForUsers(bookings);
+        log.info("Page<Bookings> booker size {}", bookings);
+        List<Booking> bookingsForUsers = mapper.mapToItemDto(bookings);
+        log.info("List<Booking> booker size {}", bookingsForUsers);
+
+        return mapper.toMapForUsers(bookingsForUsers);
     }
 
     @Override
-    public List<BookingForUser> getBookingsBooker(int bookerId, String stateParam) {
-        StatusBooking status = StatusBooking.from(stateParam);
-        userRepository.findById(bookerId)
-                .orElseThrow(() -> new NotFoundException("User with id: " + bookerId + " does not exist"));
-        List<Booking> bookings;
+    public List<BookingForUser> getBookingsBooker(GetBookings req) {
+        StatusBooking status = StatusBooking.from(req.getStateParam());
+        final User booker = userRepository.findById(req.getUserId())
+                .orElseThrow(() -> new NotFoundException("User with id: " + req.getUserId() + " does not exist"));
+
+        PageRequest pageRequest = req.getPageRequest();
+
+        log.info("установлено page {}, size {}", pageRequest.getPageNumber(), pageRequest.getPageSize());
+        Page<Booking> bookings = null;
         switch (status) {
             case ALL:
-                bookings = bookingRepository.findAllByBooker(bookerId);
+                bookings = bookingRepository.findAllByBooker(booker.getId(), pageRequest);
+                log.info("Page<Bookings> BOOKER ALL  {}", bookings);
+                log.info("PageRequest BOOKER ALL  {}", pageRequest);
                 break;
 
             case CURRENT:
-                bookings = bookingRepository.findAllByCurrent(bookerId);
+                bookings = bookingRepository.findAllByCurrent(req.getUserId(), pageRequest);
                 break;
 
             case FUTURE:
-                bookings = bookingRepository.findAllByFuture(bookerId);
+                bookings = bookingRepository.findAllByFuture(req.getUserId(), pageRequest);
                 break;
 
             case PAST:
-                bookings = bookingRepository.findAllByPast(bookerId);
+                bookings = bookingRepository.findAllByPast(req.getUserId(), pageRequest);
                 break;
 
             case REJECTED:
-                bookings = bookingRepository.findAllByBookerStatus(bookerId, StatusBooking.REJECTED);
+                bookings = bookingRepository.findAllByBookerStatus(req.getUserId(), StatusBooking.REJECTED, pageRequest);
                 break;
 
             case WAITING:
-                bookings = bookingRepository.findAllByBookerStatus(bookerId, StatusBooking.WAITING);
+                bookings = bookingRepository.findAllByBookerStatus(req.getUserId(), StatusBooking.WAITING, pageRequest);
                 break;
 
             case APPROVED:
-                bookings = bookingRepository.findAllByBookerStatus(bookerId, StatusBooking.APPROVED);
+                bookings = bookingRepository.findAllByBookerStatus(req.getUserId(), StatusBooking.APPROVED, pageRequest);
                 break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + status);
-        }
-        return mapper.toMapForUsers(bookings);
+ }
+        log.info("Page<Bookings> booker size {}", bookings);
+        List<Booking> bookingsForUsers = mapper.mapToItemDto(bookings);
+        log.info("List<Booking> booker size {}", bookingsForUsers);
+
+        return mapper.toMapForUsers(bookingsForUsers);
     }
 }

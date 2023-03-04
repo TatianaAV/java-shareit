@@ -21,11 +21,13 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper mapper;
 
-
+    @Transactional
     @Override
-    public List<UserDto> getUsers() {
-        List<User> users = userRepository.findAll();
-        return mapper.mapToUserDto(users);
+    public UserDto createUser(CreatUserDto createUser) {
+        User user = mapper.toUser(createUser);
+        return
+                mapper.toUserDto(
+                        userRepository.save(user));
     }
 
     @Override
@@ -35,11 +37,10 @@ public class UserServiceImpl implements UserService {
         return mapper.toUserDto(user);
     }
 
-    @Transactional
     @Override
-    public UserDto createUser(CreatUserDto createUser) {
-        User user = mapper.toUser(createUser);
-        return mapper.toUserDto(userRepository.save(user));
+    public List<UserDto> getUsers() {
+        List<User> users = userRepository.findAll();
+        return mapper.mapToUserDto(users);
     }
 
     @Transactional(rollbackFor = Exception.class)

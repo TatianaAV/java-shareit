@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -34,6 +37,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
@@ -43,6 +47,7 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository repository;
     private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;
+    private final ItemRequestRepository requestRepository;
     private final ItemMapper itemMapper;
     private final CommentMapper commentMapper;
     private final BookingMapper bookingMapper;
@@ -63,17 +68,21 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional
     @Override
-    public void delete(long id, int userId) {
-        repository.deleteItemByIdAndOwnerId(id, userId);
-    }
+    public ItemDto add(CreateItemDto item) {
+        User owner = userRepository.findById(item.getOwnerId())
+                .orElseThrow(() -> new NotFoundException("User with id: " + item.getOwnerId() + " does not exist"));
 
-    @Transactional
-    @Override
-    public ItemDto add(int userId, CreateItemDto item) {
-        User owner = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id: " + userId + " does not exist"));
-        Item newItem = itemMapper.createItemDtoToItem(owner, item);
-        return itemMapper.toItemDto(repository.save(newItem));
+        ItemRequest itemRequest = null;
+        if (item.getRequestId() != null) {
+            itemRequest = requestRepository
+                    .findById(item.getRequestId())
+                    .orElseThrow(() -> new ValidationException("Запрос не найден."));
+        }
+
+        Item newItem = itemMapper.toItem(item, owner, itemRequest);
+
+        Item itemSaved = repository.save(newItem);
+        return itemMapper.toItemDto(itemSaved);
     }
 
     @Override
@@ -84,21 +93,20 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public CommentDto addComment(int bookerId, CommentCreate comment, long itemId) {
+        log.info("LocalDateTime.now() {}", LocalDateTime.now());
         Booking booking = bookingRepository
                 .findBookingByBookerAndItem(bookerId, itemId, LocalDateTime.now())
-                .orElseThrow(() -> new ValidationException("Booking with itemId : " + itemId +
-                        ", bookerId " + bookerId));
-        if (booking.getBooker().getId() == bookerId) {
-            Comment commentCreate = commentMapper.toComment(booking.getBooker(), booking.getItem(), comment);
-            return commentMapper.toCommentDto(commentRepository.save(commentCreate));
-        } else {
-            throw new ValidationException("Вы не можете оставить комментарий, у вас не было бронирований");
-        }
+                .orElseThrow(() -> new ValidationException("Вы не можете оставить комментарий, у вас не было бронирований"));
+        Comment commentCreate = commentMapper.toComment(booking.getBooker(), booking.getItem(), comment);
+        return commentMapper.toCommentDto(commentRepository.save(commentCreate));
     }
 
     @Override
     public List<ItemForOwnerDto> getAll(int userId) {
         List<Item> itemByOwner = repository.findAllByOwnerIdOrderById(userId);
+        if (itemByOwner.isEmpty()) {
+            return List.of();
+        }
 
         Map<Long, Booking> itemsLast = bookingRepository.findListLast(itemByOwner, LocalDateTime.now())
                 .stream()
@@ -112,8 +120,7 @@ public class ItemServiceImpl implements ItemService {
                 .findByItemIn(itemByOwner, Sort.by(DESC, "created"))
                 .stream().collect(groupingBy(comment -> comment.getItem().getId(), toList()));
 
-        List<ItemForOwnerDto> itemForOwnerDto = mapItemForOwnerDto(itemByOwner, itemsLast, itemsNext, itemsCommits);
-        return itemForOwnerDto;
+        return mapItemForOwnerDto(itemByOwner, itemsLast, itemsNext, itemsCommits);
     }
 
     private List<ItemForOwnerDto> mapItemForOwnerDto(List<Item> itemByOwner,
@@ -125,8 +132,6 @@ public class ItemServiceImpl implements ItemService {
 
         return items.stream().peek(item -> {
             item.setComments(commentMapper.mapCommentDto(itemsCommits.getOrDefault(item.getId(), null)));
-            //а какой в этом смысл на данный момент? тесты сейчас проверяют именно на null
-            // и никакого дефолтного значения вставлять не нужно, если бы нужен был пустой список, то согласна, надо getOfDefault
             item.setLastBooking(bookingMapper.toDto(itemsLast.getOrDefault(item.getId(), null)));
             item.setNextBooking(bookingMapper.toDto(itemsNext.getOrDefault(item.getId(), null)));
         }).collect(Collectors.toList());
