@@ -130,89 +130,6 @@ class ItemControllerTest {
                 .add(any(CreateItemDto.class));
     }
 
-  /*  @Test
-    void createWithoutAvailable() throws Exception {
-
-        when(itemService.add(any(CreateItemDto.class)))
-                .thenThrow(new HttpServerErrorException(INTERNAL_SERVER_ERROR));
-
-        mvc.perform(post("/items")
-                        .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(
-                                new CreateItemDto("Дрель",
-                                        "Простая дрель",
-                                        null,
-                                        null, null)))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, times(0))
-                .add(any(CreateItemDto.class));
-    }*/
-
-   /* @Test
-    void createWithEmptyName() throws Exception {
-
-        when(itemService.add(any(CreateItemDto.class)))
-                .thenThrow(new ValidationException(""));
-
-        mvc.perform(post("/items")
-                        .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(
-                                new CreateItemDto(" ",
-                                        "Простая дрель",
-                                        true,
-                                        null, null)))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, times(0))
-                .add(any(CreateItemDto.class));
-    }
-*/
-  /*  @Test
-    void createWithEmptyDescription() throws Exception {
-        when(itemService.add(any(CreateItemDto.class)))
-                .thenThrow(new ValidationException(""));
-
-        mvc.perform(post("/items")
-                        .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(
-                                new CreateItemDto("Дрель",
-                                        " ",
-                                        true,
-                                        null, null)))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, times(0))
-                .add(any(CreateItemDto.class));
-    }*/
-
-  /*  @Test
-    void createWithEmptyDto() throws Exception {
-        when(itemService.add(any(CreateItemDto.class)))
-                .thenThrow(new ValidationException(""));
-
-        mvc.perform(post("/items")
-                        .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(
-                                new CreateItemDto()))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, times(0))
-                .add(any(CreateItemDto.class));
-    }*/
-
     @Test
     void getAll() throws Exception {
 
@@ -267,22 +184,6 @@ class ItemControllerTest {
                 .search(anyString(), anyLong());
     }
 
-    /*@Test
-    void searchNullText() throws Exception {
-        String text = null;
-        when(itemService.search(anyString(),anyLong()))
-                .thenThrow(new ValidationException(""));
-
-        mvc.perform(get("/items/search")
-                        .header("X-Sharer-User-Id", 2)
-                        .queryParam("text", text))
-
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, times(0))
-                .search(anyString(), anyLong());
-    }*/
-
     @Test
     void getById() throws Exception {
 
@@ -322,23 +223,6 @@ class ItemControllerTest {
         verify(itemService, times(1))
                 .addComment(anyLong(), any(CommentCreate.class), anyLong());
     }
-
- /*   @Test
-    void addCommentWithEmptyText() throws Exception {
-        when(itemService.addComment(anyLong(), any(CommentCreate.class), anyLong()))
-                .thenThrow(new ValidationException(""));
-
-        mvc.perform(post("/items/{itemId}/comment", 1)
-                        .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(new CommentCreate(" ")))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(itemService, times(0))
-                .addComment(anyLong(), any(CommentCreate.class), anyLong());
-    }*/
 
     @Test
     void update() throws Exception {

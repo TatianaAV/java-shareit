@@ -79,58 +79,6 @@ class UserControllerTest {
                 .createUser(any(UserDto.class));
     }
 
-/*    @Test
-    void createUserEmailException() throws Exception {
-        when(userService.createUser(any(UserDto.class)))
-                .thenThrow(new ValidationException("Email не может быть пустым"));
-
-        mvc.perform(post("/users")
-                        .content(mapper.writeValueAsString(new UserDto(0L, " ", "Created empty email")))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(userService, times(0))
-                .createUser(any(UserDto.class));
-    }*/
-
-   /* @Test
-    void createUserFailNoEmail() throws Exception {
-        when(userService.createUser(any(UserDto.class)))
-                .thenThrow(new ValidationException("Email не может быть пустым"));
-
-        mvc.perform(post("/users")
-                        .content(mapper.writeValueAsString(new UserDto(0L,
-                                " ",
-                                "John Doe")))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(userService, times(0))
-                .createUser(any(UserDto.class));
-    }
-*/
-/*    @Test
-    void createUserInvalidEmail() throws Exception {
-        when(userService.createUser(any(UserDto.class)))
-                .thenThrow(new ValidationException("Email не соответствует формату"));
-
-        mvc.perform(post("/users")
-                        .content(mapper.writeValueAsString(new UserDto(0L,
-                                "@mail.ru",
-                                "John Doe")))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        verify(userService, times(0))
-                .createUser(any(UserDto.class));
-    }*/
-
     @Test
     void getUsers() throws Exception {
 
@@ -159,7 +107,6 @@ class UserControllerTest {
         verify(userService, times(1))
                 .getUserById(anyLong());
     }
-
 
     @Test
     void updateUser() throws Exception {

@@ -130,43 +130,6 @@ class ItemRequestControllerTest {
                 .searchRequests(any(GetItemRequest.class));
     }
 
-   /* @Test
-    void searchRequestsExceptionFrom() throws Exception {
-        String from = "-1";
-        String size = "20";
-
-        when(itemRequestService.searchRequests(any(GetItemRequest.class)))
-                .thenThrow(new ValidationException(""));
-
-        mvc.perform(get("/requests/all")
-                        .header("X-Sharer-User-Id", 1)
-                        .queryParam("from", from)
-                        .queryParam("size", size))
-                .andExpect(status().isBadRequest());
-
-        verify(itemRequestService, times(0))
-                .searchRequests(any(GetItemRequest.class));
-    }*/
-
-  /*  @Test
-    void searchRequestsExceptionSize() throws Exception {
-        String from = "0";
-        String size = "0";
-
-        when(itemRequestService.searchRequests(any(GetItemRequest.class)))
-                .thenThrow(new ValidationException(""));
-
-        mvc.perform(get("/requests/all")
-                        .header("X-Sharer-User-Id", 1)
-                        .queryParam("from", from)
-                        .queryParam("size", size))
-                .andExpect(status().isBadRequest());
-
-        verify(itemRequestService, times(0))
-                .searchRequests(any(GetItemRequest.class));
-    }*/
-
-
     @Test
     void getById() throws Exception {
 

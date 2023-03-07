@@ -222,13 +222,6 @@ class ItemServiceTest implements Queries {
                 new CommentCreate("Comment"), 1L)).isInstanceOf(ValidationException.class);
     }
 
-   /* @Test
-    @Sql(statements = {RESET_IDS, ADD_USER, ADD_USER_2, ADD_ITEM, ADD_BOOKING_ITEM1_USER2})
-    void addCommentEmptyTestMapping() {
-        assertThatThrownBy(() -> itemService.addComment(2L,
-                new CommentCreate("  "), 1L)).isInstanceOf(ConstraintViolationException.class);
-    }*/
-
     @Test
     @Sql(statements = {RESET_IDS, ADD_USER, ADD_USER_2, ADD_iTEM_REQUEST})
     void addWithRequest() {

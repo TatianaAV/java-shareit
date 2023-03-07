@@ -85,70 +85,6 @@ class BookingControllerTest {
                 .add(anyLong(), any(BookingDto.class));
     }
 
-  /*  @Test
-    void createExceptionStart() throws Exception {
-
-        when(bookingService.add(anyInt(), any(BookingDto.class)))
-                .thenThrow(new ValidationException("Время начала не может быть раньше текущего времени"));
-
-        mvc.perform(post("/bookings")
-                        .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(new CreateBookingDto(
-                                LocalDateTime.now(),
-                                LocalDateTime.MAX, 1L
-                        )))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().is4xxClientError());
-
-        verify(bookingService, times(0))
-                .add(anyInt(), any(BookingDto.class));
-    }*/
-
-  /*  @Test
-    void createExceptionFinish() throws Exception {
-
-
-        when(bookingService.add(anyInt(), any(BookingDto.class)))
-                .thenThrow(new ValidationException(""));
-
-        mvc.perform(post("/bookings")
-                        .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(new CreateBookingDto(
-                                LocalDateTime.now().plusDays(1),
-                                LocalDateTime.now(), 1L
-                        )))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().is4xxClientError());
-
-        verify(bookingService, times(0))
-                .add(anyInt(), any(BookingDto.class));
-    }*/
-
-  /*  @Test
-    void createExceptionFailItemId() throws Exception {
-
-
-        when(bookingService.add(anyLong(), any(BookingDto.class)))
-                .thenThrow(new ValidationException(""));
-
-        mvc.perform(post("/bookings")
-                        .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(new CreateBookingDto(
-                                LocalDateTime.now().plusDays(1),
-                                LocalDateTime.now().plusDays(2), null)))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().is4xxClientError());
-
-        verify(bookingService, times(0))
-                .add(anyLong(), any(BookingDto.class));
-    }*/
-
     @Test
     void getByIdException() throws Exception {
 
@@ -259,42 +195,4 @@ class BookingControllerTest {
         verify(bookingService, times(1))
                 .getBookingsOwner(any(GetBookings.class));
     }
-
-  /*  @Test
-    void getBookingsExceptionFrom() throws Exception {
-        String from = "-1";
-        String size = "20";
-        String stateParam = "ALL";
-        when(bookingService.getBookingsBooker(any(GetBookings.class)))
-                .thenThrow(new ValidationException(""));
-
-        mvc.perform(get("/bookings")
-                        .header("X-Sharer-User-Id", 1)
-                        .queryParam("from", from)
-                        .queryParam("size", size)
-                        .queryParam("status", stateParam))
-                .andExpect(status().isBadRequest());
-
-        verify(bookingService, times(0))
-                .getBookingsBooker(any(GetBookings.class));
-    }*/
-
- /*   @Test
-    void getBookingsByOwnerExceptionSize() throws Exception {
-        String from = "0";
-        String size = "0";
-        String stateParam = null;
-        when(bookingService.getBookingsOwner(any(GetBookings.class)))
-                .thenThrow(new ValidationException(""));
-
-        mvc.perform(get("/bookings/owner")
-                        .header("X-Sharer-User-Id", 1)
-                        .queryParam("from", from)
-                        .queryParam("size", size)
-                        .queryParam("status", stateParam))
-                .andExpect(status().isBadRequest());
-
-        verify(bookingService, times(0))
-                .getBookingsOwner(any(GetBookings.class));
-    }*/
 }
