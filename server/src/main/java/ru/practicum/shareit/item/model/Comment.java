@@ -9,7 +9,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 @Setter
@@ -31,7 +30,6 @@ public class Comment {
     private LocalDateTime created;
 
     @Column(name = "content", nullable = false)
-    @NotBlank(message = "comment is required")
     private String text;
 
     @ManyToOne

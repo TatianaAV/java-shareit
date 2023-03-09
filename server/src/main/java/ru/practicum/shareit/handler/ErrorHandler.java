@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpServerErrorException;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.ConstraintViolationException;
 import java.sql.SQLException;
 
 import static org.springframework.http.HttpStatus.*;
@@ -16,7 +15,7 @@ import static org.springframework.http.HttpStatus.*;
 @RestControllerAdvice
 public class ErrorHandler {
 
-    @ExceptionHandler({ConstraintViolationException.class, ValidationException.class})
+    @ExceptionHandler({ValidationException.class})
     @ResponseStatus(BAD_REQUEST)
     public ErrorResponse handlerValidationException(HttpServletRequest request, final Exception e) {
         log.error("Requested URL= {}", request.getRequestURL());
@@ -55,30 +54,4 @@ public class ErrorHandler {
         log.error("BAD_REQUEST {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
-    /*@RestControllerAdvice
-public class ErrorHandler {
-    @ExceptionHandler
-    @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse handle(final ConstraintViolationException e) {
-        return new ErrorResponse(e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse handle(final IllegalArgumentException e) {
-        return new ErrorResponse(e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(BAD_REQUEST)
-    public ErrorResponse handle(final MethodArgumentNotValidException e) {
-        return new ErrorResponse(Objects.requireNonNull(e.getFieldError()).getDefaultMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(INTERNAL_SERVER_ERROR)
-    public ErrorResponse handle(final Throwable e) {
-        return new ErrorResponse(e.getMessage());
-    }
-}*/
 }

@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 @Setter
@@ -15,7 +14,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ItemRequestCreateDto {
 
-    @NotBlank(message = "Заполните описание зпапроса.")
     private String description;
     private Long requestorId;
 

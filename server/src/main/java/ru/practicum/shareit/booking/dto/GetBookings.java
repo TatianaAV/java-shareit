@@ -6,13 +6,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.domain.PageRequest;
 
-import javax.validation.Valid;
-
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Valid
 public class GetBookings {
     private Long userId;
 
